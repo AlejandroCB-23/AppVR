@@ -1,3 +1,5 @@
+#if WAVE_SDK_IMPORTED
+
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -31,15 +33,15 @@ public class EyeDataCollector : MonoBehaviour
         if (EyeManager.Instance != null) // Verificar si tenemos en la escena un objeto de seguimiento ocular
         {
             EyeManager.Instance.EnableEyeTracking = true;
-            CheckEyeTrackingAvailability(); // Verificar si el seguimiento ocular está disponible
+            CheckEyeTrackingAvailability(); // Verificar si el seguimiento ocular estï¿½ disponible
         }
 
-        InitializeLineRenderer(); // Inicializar el renderizador de líneas
+        InitializeLineRenderer(); // Inicializar el renderizador de lï¿½neas
     }
 
     void Update()
     {
-        // Verificar si el seguimiento ocular está disponible
+        // Verificar si el seguimiento ocular estï¿½ disponible
         if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
             return;
 
@@ -67,12 +69,12 @@ public class EyeDataCollector : MonoBehaviour
         {
             Transform headTransform = Camera.main.transform;
 
-            // Transformación de las coordenadas de los ojos
+            // Transformaciï¿½n de las coordenadas de los ojos
             Vector3 leftEyeTransformed = leftEyeDataAvailable ? headTransform.TransformPoint(leftEyeOrigin) : Vector3.zero;
             Vector3 rightEyeTransformed = rightEyeDataAvailable ? headTransform.TransformPoint(rightEyeOrigin) : Vector3.zero;
             Vector3 combinedEyeTransformed = combinedEyeDataAvailable ? headTransform.TransformPoint(combinedEyeOrigin) : Vector3.zero;
 
-            // Dirección de los ojos en el mundo
+            // Direcciï¿½n de los ojos en el mundo
             Vector3 leftEyeWorldDirection = leftEyeDataAvailable ? headTransform.TransformDirection(leftEyeDirection) : Vector3.zero;
             Vector3 rightEyeWorldDirection = rightEyeDataAvailable ? headTransform.TransformDirection(rightEyeDirection) : Vector3.zero;
             Vector3 combinedEyeWorldDirection = combinedEyeDataAvailable ? headTransform.TransformDirection(combinedEyeDirection) : Vector3.zero;
@@ -113,7 +115,7 @@ public class EyeDataCollector : MonoBehaviour
         }
         else
         {
-            DrawEyeRay(eyeTransformed, eyeTransformed + eyeDirection * maxDistance);  // Dibujar rayo sin colisión
+            DrawEyeRay(eyeTransformed, eyeTransformed + eyeDirection * maxDistance);  // Dibujar rayo sin colisiï¿½n
         }
     }
 
@@ -131,14 +133,14 @@ public class EyeDataCollector : MonoBehaviour
     {
         if (obj.TryGetComponent<Renderer>(out Renderer renderer))
         {
-            // Obtén el número de impactos acumulados con el objeto
+            // Obtï¿½n el nï¿½mero de impactos acumulados con el objeto
             int hitCount = heatMap.ContainsKey(obj) ? heatMap[obj] : 0;
 
-            // Escala de impacto que define cuántos impactos se necesitan para que el objeto cambie de color
-            float impactScale = 125f; // Aumenta este valor para que se necesiten más impactos
+            // Escala de impacto que define cuï¿½ntos impactos se necesitan para que el objeto cambie de color
+            float impactScale = 125f; // Aumenta este valor para que se necesiten mï¿½s impactos
 
             // Calcula la intensidad con un cambio gradual (ajustado por la escala de impactos)
-            float intensity = Mathf.Clamp01(Mathf.Sqrt(hitCount) / impactScale);  // Se necesita más hits para llegar a 1
+            float intensity = Mathf.Clamp01(Mathf.Sqrt(hitCount) / impactScale);  // Se necesita mï¿½s hits para llegar a 1
 
             // Generar un mapa de calor entre varios colores
             Color newColor = GetHeatMapColor(intensity);
@@ -146,7 +148,7 @@ public class EyeDataCollector : MonoBehaviour
         }
     }
 
-    // Función para obtener el color correspondiente a la intensidad
+    // Funciï¿½n para obtener el color correspondiente a la intensidad
     Color GetHeatMapColor(float intensity)
     {
         if (intensity < 0.33f)
@@ -159,13 +161,13 @@ public class EyeDataCollector : MonoBehaviour
 
     async Task SaveEyeDataAsync()
     {
-        // Usamos una lista local para evitar acceder a la cola en cada iteración.
+        // Usamos una lista local para evitar acceder a la cola en cada iteraciï¿½n.
         List<EyeData> dataToSave = new List<EyeData>(pendingSaveQueue);
         pendingSaveQueue.Clear();
 
         // Guardar en el archivo "normalDataFilePath"
         string normalJsonData = JsonUtility.ToJson(new EyeDataBatch(dataToSave), true);
-        await File.AppendAllTextAsync(normalDataFilePath, normalJsonData);  // Asincrónico, no bloquea el hilo principal
+        await File.AppendAllTextAsync(normalDataFilePath, normalJsonData);  // Asincrï¿½nico, no bloquea el hilo principal
 
         // Transformar los datos y guardarlos en otro archivo
         List<EyeData> transformedDataToSave = new List<EyeData>();
@@ -183,7 +185,7 @@ public class EyeDataCollector : MonoBehaviour
         }
 
         string transformedJsonData = JsonUtility.ToJson(new EyeDataBatch(transformedDataToSave), true);
-        await File.AppendAllTextAsync(transformedDataFilePath, transformedJsonData);  // Asincrónico
+        await File.AppendAllTextAsync(transformedDataFilePath, transformedJsonData);  // Asincrï¿½nico
     }
 
     void SaveHeatMapData()
@@ -193,7 +195,7 @@ public class EyeDataCollector : MonoBehaviour
             heatMapList.Add(new HeatMapData(entry.Key.name, entry.Value));
 
         string heatMapJsonData = JsonUtility.ToJson(new HeatMapBatch(heatMapList), true);
-        File.WriteAllText(heatMapFilePath, heatMapJsonData);  // Escribir de manera síncrona
+        File.WriteAllText(heatMapFilePath, heatMapJsonData);  // Escribir de manera sï¿½ncrona
     }
 
     void RequestStoragePermissions()
@@ -257,3 +259,5 @@ public class EyeDataBatch { public List<EyeData> eyeData; public EyeDataBatch(Li
 public class HeatMapData { public string objectName; public int hitCount; public HeatMapData(string name, int count) { objectName = name; hitCount = count; } }
 [System.Serializable]
 public class HeatMapBatch { public List<HeatMapData> heatMapData; public HeatMapBatch(List<HeatMapData> data) { heatMapData = data; } }
+
+#endif
