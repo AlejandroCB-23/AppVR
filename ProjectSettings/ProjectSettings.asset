@@ -141,10 +141,7 @@ PlayerSettings:
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
   bundleVersion: 0.1
-  preloadedAssets:
-  - {fileID: -944628639613478452, guid: cdbdd7278fdc8504fb7a4fab0d8db030, type: 3}
-  - {fileID: 11400000, guid: ba515c5f2d4d8d54881731917a1acdfc, type: 2}
-  - {fileID: 8128215521881524629, guid: 3f521d1a24795184f834c377ba3a1dbe, type: 2}
+  preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -858,13 +855,7 @@ PlayerSettings:
   windowsGamepadBackendHint: 0
   cloudProjectId: c4ca9eef-b383-458d-a44e-e65ec78ef8b1
   framebufferDepthMemorylessMode: 0
-  qualitySettingsNames:
-  - Very Low
-  - Low
-  - Medium
-  - High
-  - Very High
-  - Ultra
+  qualitySettingsNames: []
   projectName: Prueba 2025-03-29_11-59-32
   organizationId: alexcb23
   cloudEnabled: 0
