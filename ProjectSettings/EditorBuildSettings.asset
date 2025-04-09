@@ -6,5 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes: []
   m_configObjects:
-    com.htc.upm.wave.xrsdk.xrsettings: {fileID: 11400000, guid: ba515c5f2d4d8d54881731917a1acdfc, type: 2}
+    com.htc.upm.wave.xrsdk.xrsettings: {fileID: 11400000, guid: e4dbc7e3d72c9fb41a5fccd6d664d693, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: cdbdd7278fdc8504fb7a4fab0d8db030, type: 3}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: d18dd8e990e07844a9006a99e3153bbd, type: 2}

@@ -744,6 +744,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Android: WAVE_SDK_IMPORTED
+    Standalone: WAVE_SDK_IMPORTED
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -851,7 +852,7 @@ PlayerSettings:
   hmiLogStartupTiming: 0
   hmiCpuConfiguration: 
   apiCompatibilityLevel: 6
-  activeInputHandler: 2
+  activeInputHandler: 1
   windowsGamepadBackendHint: 0
   cloudProjectId: c4ca9eef-b383-458d-a44e-e65ec78ef8b1
   framebufferDepthMemorylessMode: 0
