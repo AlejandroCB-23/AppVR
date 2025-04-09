@@ -37,15 +37,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Density: 4
-    - _Noise: 2
-    - _Power: 6
+    - _Density: 20
+    - _Noise: 3
+    - _Power: 20
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Speed: 5
+    - _Speed: 2
     - _WaveSpeed: 0.025
     m_Colors:
-    - _Tiling2: {r: 0.25, g: 0.25, b: 0, a: 0}
+    - _Tiling2: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _WaterColor: {r: 0.17647055, g: 0.36862746, b: 1, a: 0}
     - _WaveColor: {r: 0.27058816, g: 0.5921568, b: 1, a: 0}
   m_BuildTextureStacks: []
