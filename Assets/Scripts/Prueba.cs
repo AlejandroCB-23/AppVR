@@ -101,7 +101,7 @@ public class EyeDataCollector : MonoBehaviour
     void PerformRaycastWithEyeData(Vector3 eyeTransformed, Vector3 eyeDirection)
     {
         Ray ray = new Ray(eyeTransformed, eyeDirection);
-        float maxDistance = 50f;
+        float maxDistance = Mathf.Infinity;
         RaycastHit hit;
 
         // Usamos el LayerMask para restringir el raycast a la capa "Default" 
