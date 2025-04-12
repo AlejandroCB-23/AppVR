@@ -2841,7 +2841,7 @@ MonoBehaviour:
   maxDistance: Infinity
   cannonballPrefab: {fileID: 3580160371187175890, guid: 26c99256ca871004e82265cfedb6a5ca, type: 3}
   cannonTransform: {fileID: 385479140}
-  cannonballForce: 18000
+  forceMultiplier: 80
 --- !u!4 &835606580 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 826a837d489ca9a4b961298e08b69e8a, type: 3}
