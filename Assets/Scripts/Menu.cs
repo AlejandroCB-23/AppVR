@@ -18,7 +18,7 @@ namespace menu
         public float maxDistance = Mathf.Infinity;
 
         [Header("Configuración de input")]
-        public Controls controls;  
+        public Controls controls;
         private InputAction fireAction;
 
         private GameObject currentLookedObject = null;
@@ -89,7 +89,7 @@ namespace menu
                 }
                 else if (currentLookedObject != null)
                 {
-                    ResetPreviousLook(); 
+                    ResetPreviousLook();
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace menu
             {
                 currentMat = renderer.material;
                 originalColor = currentMat.color;
-                currentMat.color = new Color(1f, 0.6f, 0f);  
+                currentMat.color = new Color(1f, 0.6f, 0f);
                 obj.transform.localScale *= 1.1f;
             }
         }
@@ -149,7 +149,7 @@ namespace menu
         {
             if (button == modoTestObject)
             {
-                SceneManager.LoadScene("Game");
+                SceneManager.LoadScene("ModoTest");
             }
             else if (button == modoAleatorioObject)
             {
