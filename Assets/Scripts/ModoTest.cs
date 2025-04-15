@@ -119,7 +119,7 @@ public class FixedSpawner : MonoBehaviour
             float heightOffset = spawnPoint.position.y - bottomY;  // -0.5f para enterrarlo un poco
             ship.transform.position += new Vector3(0f, heightOffset, 0f);
 
-            // Ajustamos el BoxCollider después de mover el barco
+            // Ajustamos el BoxCollider despu?s de mover el barco
             BoxCollider boxCollider = ship.GetComponentInChildren<BoxCollider>();
             if (boxCollider != null)
             {
@@ -136,18 +136,20 @@ public class FixedSpawner : MonoBehaviour
         shipScript.Initialize(spawnEvent.isPirate, spawnEvent.speed);
         shipScript.SetDestination(endPoint.position);
 
-        // Añadir el círculo indicador alrededor del barco
-        float radius = GetIndicatorRadius(spawnEvent.sizeIndex, ship);  // Tamaño dinámico
+        // A?adir el c?rculo indicador alrededor del barco
+        float radius = GetIndicatorRadius(spawnEvent.sizeIndex, ship);  // Tama?o din?mico
 
-        // Instanciar el prefab y ajustar el tamaño
+        // Instanciar el prefab y ajustar el tama?o
         GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
         indicator.transform.SetParent(ship.transform);
-        indicator.transform.localPosition = new Vector3(0f, 2f, 0f);  // Mover el círculo un poco más arriba en Y
+        indicator.transform.localPosition = new Vector3(0f, 3f, 0f);  // Mover el c?rculo un poco m?s arriba en Y
 
-        // Aumentamos el tamaño del radio
-        indicator.transform.localScale = new Vector3(radius * 1.5f, 1f, radius * 1.5f);  // Ajustar el tamaño del círculo (1.5x más grande)
+        // Aumentamos el tama?o del radio
+        indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);  // Ajustar el tama?o del c?rculo (1.5x m?s grande)
 
-        // Guardamos una referencia para controlarla más tarde
+        indicator.SetActive(false);
+
+        // Guardamos una referencia para controlarla m?s tarde
         shipScript.indicatorCircle = indicator;
     }
 
@@ -156,13 +158,15 @@ public class FixedSpawner : MonoBehaviour
 
     float GetIndicatorRadius(int sizeIndex, GameObject ship)
     {
-        // Usamos la escala del barco para calcular el radio del círculo.
+        // Usamos la escala del barco para calcular el radio del c?rculo.
         float shipSize = ship.transform.localScale.x;  // Asumiendo que la escala es uniforme (X, Y, Z)
 
-        // Ajustamos el radio del círculo según el tamaño del barco
-        return shipSize * 0.5f;  // Por ejemplo, mitad del tamaño del barco
+        // Ajustamos el radio del c?rculo seg?n el tama?o del barco
+        return shipSize * 0.5f;  // Por ejemplo, mitad del tama?o del barco
     }
 }
+
+
 
 
 

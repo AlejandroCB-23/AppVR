@@ -1765,7 +1765,7 @@ MonoBehaviour:
   - {fileID: 5656654166730381985, guid: 9d069e1e7d5a9b749a456e4b2fea3340, type: 3}
   - {fileID: 2734642171347104252, guid: 2fba502437b2fab41b32ec8c8054b82d, type: 3}
   - {fileID: 6178692450375849595, guid: 5930070f8025e8a43a1715aac35dbc76, type: 3}
-  circleIndicatorPrefab: {fileID: 6758900444650961232, guid: a1a240e013380c644adafcfc2b26e0f9, type: 3}
+  circleIndicatorPrefab: {fileID: 2875427239384993938, guid: b656591151a82d84283f0e2d11f1a516, type: 3}
 --- !u!4 &470224381
 Transform:
   m_ObjectHideFlags: 0
