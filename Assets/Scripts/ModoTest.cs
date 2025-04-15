@@ -142,7 +142,16 @@ public class FixedSpawner : MonoBehaviour
         // Instanciar el prefab y ajustar el tama?o
         GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
         indicator.transform.SetParent(ship.transform);
-        indicator.transform.localPosition = new Vector3(0f, 3f, 0f);  // Mover el c?rculo un poco m?s arriba en Y
+
+        float xOffset = 0f;
+        if (spawnEvent.lane == 1)
+            xOffset = 3f;  // derecha
+        else if (spawnEvent.lane == 2)
+            xOffset = -3f; // izquierda
+        else if (spawnEvent.lane == 3)
+            xOffset = 5f;
+
+        indicator.transform.localPosition = new Vector3(xOffset, 3f, 0f);
 
         // Aumentamos el tama?o del radio
         indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);  // Ajustar el tama?o del c?rculo (1.5x m?s grande)
