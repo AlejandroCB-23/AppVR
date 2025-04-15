@@ -1,6 +1,7 @@
 #if WAVE_SDK_IMPORTED
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Wave.Essence.Eye;
 
 public class GazeShipDetector : MonoBehaviour
@@ -13,8 +14,24 @@ public class GazeShipDetector : MonoBehaviour
 
     private Ship currentLookedShip = null;
     private float gazeTimer = 0f;
-
     private Vector3 gazeTargetPoint;
+
+    // NUEVO: Input
+    public Controls controls;
+    private InputAction fireAction;
+
+    void OnEnable()
+    {
+        controls = new Controls();
+        fireAction = controls.PlayerControls.Fire;
+        fireAction.Enable();
+        fireAction.performed += _ => OnTriggerPressed();
+    }
+
+    void OnDisable()
+    {
+        fireAction.Disable();
+    }
 
     void Update()
     {
@@ -80,6 +97,16 @@ public class GazeShipDetector : MonoBehaviour
         gazeTimer = 0f;
     }
 
+    // NUEVO: Disparo con gatillo
+    void OnTriggerPressed()
+    {
+        if (currentLookedShip != null)
+        {
+            FireCannonball(currentLookedShip);
+            ResetPreviousLook();
+        }
+    }
+
     void FireCannonball(Ship target)
     {
         GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
@@ -94,17 +121,16 @@ public class GazeShipDetector : MonoBehaviour
 
         rb.AddForce(direction * adjustedForce);
 
-        // Ahora instanciamos y asignamos el script CannonballShip
         CannonballShip cannonballShipScript = cannonball.GetComponent<CannonballShip>();
         if (cannonballShipScript != null)
         {
-            cannonballShipScript.targetShip = target; // Asignamos el barco al que la bola de cañón se dirigirá
+            cannonballShipScript.targetShip = target;
         }
     }
-
 }
 
 #endif
+
 
 
 

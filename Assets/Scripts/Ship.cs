@@ -9,6 +9,8 @@ public class Ship : MonoBehaviour
     private Material shipMaterial;
     private Color originalColor;
 
+    public GameObject indicatorCircle;
+
     public void Initialize(bool pirate, float customSpeed)
     {
         speed = customSpeed;
@@ -27,9 +29,9 @@ public class Ship : MonoBehaviour
 
     public void Highlight(bool active)
     {
-        if (shipMaterial != null)
+        if (indicatorCircle != null)
         {
-            shipMaterial.color = active ? Color.yellow : originalColor;
+            indicatorCircle.SetActive(active);
         }
     }
 
@@ -55,7 +57,22 @@ public class Ship : MonoBehaviour
     {
         isSinking = true;
         gameObject.AddComponent<ShipSink>();
+
+        // Desactivar todos los colliders del barco
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        foreach (var col in colliders)
+        {
+            col.enabled = false;
+        }
     }
+
+
+
+    public bool IsSinking()
+    {
+        return isSinking;
+    }
+
 }
 
 

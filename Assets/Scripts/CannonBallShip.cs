@@ -14,7 +14,7 @@ public class CannonballShip : MonoBehaviour
         if (hitObj.CompareTag("Ship"))
         {
             Ship ship = hitObj.GetComponent<Ship>();
-            if (ship != null)
+            if (ship != null && !ship.IsSinking())
             {
                 ship.Sink(); // Hundir el barco
             }
