@@ -90,6 +90,7 @@ public class GazeShipDetector : MonoBehaviour
     {
         if (currentLookedShip != null)
         {
+            // Desactivar el círculo indicador si no estamos mirando el barco
             currentLookedShip.Highlight(false);
             currentLookedShip = null;
         }
@@ -130,6 +131,7 @@ public class GazeShipDetector : MonoBehaviour
 }
 
 #endif
+
 
 
 

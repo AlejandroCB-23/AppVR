@@ -8,6 +8,7 @@ public class FixedSpawner : MonoBehaviour
     public Transform[] endPoints;
     public GameObject[] pirateShipPrefabs;
     public GameObject[] normalShipPrefabs;
+    public GameObject circleIndicatorPrefab; // Prefab del círculo indicador
 
     private List<ShipSpawnEvent> schedule = new List<ShipSpawnEvent>();
     private float timer = 0f;
@@ -137,10 +138,20 @@ public class FixedSpawner : MonoBehaviour
 
         // Añadir el círculo indicador alrededor del barco
         float radius = GetIndicatorRadius(spawnEvent.sizeIndex, ship);  // Tamaño dinámico
-        GameObject indicator = CreateRedCircleIndicator(radius); // Crear el círculo
+
+        // Instanciar el prefab y ajustar el tamaño
+        GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
         indicator.transform.SetParent(ship.transform);
-        indicator.transform.localPosition = Vector3.zero;  // Colocamos el círculo en el centro del barco
+        indicator.transform.localPosition = new Vector3(0f, 2f, 0f);  // Mover el círculo un poco más arriba en Y
+
+        // Aumentamos el tamaño del radio
+        indicator.transform.localScale = new Vector3(radius * 1.5f, 1f, radius * 1.5f);  // Ajustar el tamaño del círculo (1.5x más grande)
+
+        // Guardamos una referencia para controlarla más tarde
+        shipScript.indicatorCircle = indicator;
     }
+
+
 
 
     float GetIndicatorRadius(int sizeIndex, GameObject ship)
@@ -150,32 +161,6 @@ public class FixedSpawner : MonoBehaviour
 
         // Ajustamos el radio del círculo según el tamaño del barco
         return shipSize * 0.5f;  // Por ejemplo, mitad del tamaño del barco
-    }
-
-    GameObject CreateRedCircleIndicator(float radius)
-    {
-        GameObject circle = new GameObject("ShipIndicator");
-        LineRenderer lr = circle.AddComponent<LineRenderer>();
-
-        int segments = 100;
-        lr.positionCount = segments + 1;
-        lr.widthMultiplier = 0.25f;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = Color.red;
-        lr.endColor = Color.red;
-        lr.loop = true;
-        lr.useWorldSpace = false;
-
-        // Generamos el círculo alrededor del barco
-        for (int i = 0; i <= segments; i++)
-        {
-            float angle = i * 2 * Mathf.PI / segments;
-            float x = Mathf.Cos(angle) * radius;
-            float z = Mathf.Sin(angle) * radius;
-            lr.SetPosition(i, new Vector3(x, 0f, z));  // El círculo se coloca en el plano XY
-        }
-
-        return circle;
     }
 }
 

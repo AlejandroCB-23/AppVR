@@ -31,7 +31,7 @@ public class Ship : MonoBehaviour
     {
         if (indicatorCircle != null)
         {
-            indicatorCircle.SetActive(active);
+            indicatorCircle.SetActive(active);  // Mostrar u ocultar el círculo
         }
     }
 
@@ -66,14 +66,12 @@ public class Ship : MonoBehaviour
         }
     }
 
-
-
     public bool IsSinking()
     {
         return isSinking;
     }
-
 }
+
 
 
 
