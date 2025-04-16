@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
     public float gameDuration = 120f; // Duración del juego en segundos
     private float timer;
 
+    public float TimeRemaining => timer; // Propiedad pública para acceder desde fuera
+
     void Start()
     {
         timer = gameDuration;
@@ -25,5 +27,5 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene("Menu");
     }
-
 }
+
