@@ -71,8 +71,8 @@ public class GazeShipDetector : MonoBehaviour
                     else
                     {
                         // Solo contamos el tiempo de la mirada si estamos en los modos apropiados
-                        if (GameSettings.ModoDisparoActual == GameSettings.DisparoMode.SoloVista ||
-                            GameSettings.ModoDisparoActual == GameSettings.DisparoMode.Ambas)
+                        if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyView ||
+                            GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
                         {
                             gazeTimer += Time.deltaTime;
 
@@ -115,8 +115,8 @@ public class GazeShipDetector : MonoBehaviour
         if (currentLookedShip != null)
         {
             // Solo permitimos disparo con gatillo si el modo es SoloMando o Ambas
-            if (GameSettings.ModoDisparoActual == GameSettings.DisparoMode.SoloMando ||
-                GameSettings.ModoDisparoActual == GameSettings.DisparoMode.Ambas)
+            if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyController ||
+                GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
             {
                 FireCannonball(currentLookedShip);
                 ResetPreviousLook();

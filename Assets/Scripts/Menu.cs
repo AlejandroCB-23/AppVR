@@ -181,17 +181,17 @@ namespace menu
             }
             else if (button == onlyViewObject)
             {
-                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.SoloVista;
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
                 SceneManager.LoadScene("ModoTest");
             }
             else if (button == onlyControllerObject)
             {
-                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.SoloMando;
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
                 SceneManager.LoadScene("ModoTest");
             }
             else if (button == bothObject)
             {
-                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.Ambas;
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
                 SceneManager.LoadScene("ModoTest");
             }
             else if (button == backObject)

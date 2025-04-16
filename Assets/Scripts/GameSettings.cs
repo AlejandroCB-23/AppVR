@@ -2,6 +2,6 @@
 
 public static class GameSettings
 {
-    public enum DisparoMode { SoloVista, SoloMando, Ambas }
-    public static DisparoMode ModoDisparoActual = DisparoMode.Ambas;
+    public enum DisparoMode { OnlyView, OnlyController, Both }
+    public static DisparoMode CurrentShootingMode = DisparoMode.Both;
 }
