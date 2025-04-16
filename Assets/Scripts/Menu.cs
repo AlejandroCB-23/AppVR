@@ -166,6 +166,8 @@ namespace menu
 
         public void ExecuteButtonAction(GameObject button)
         {
+            FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+
             if (button == modoTestObject)
             {
                 MainMenu.SetActive(false);

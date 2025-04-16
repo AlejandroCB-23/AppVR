@@ -10,12 +10,17 @@ public class Ship : MonoBehaviour
 
     private Material shipMaterial;
     private Color originalColor;
+    private bool isPirate;
+    private float spawnTime;
 
     public GameObject indicatorCircle;
 
     public void Initialize(bool pirate, float customSpeed)
     {
         speed = customSpeed;
+        isPirate = pirate;
+        spawnTime = Time.time;
+
         Renderer rend = GetComponentInChildren<Renderer>();
         if (rend != null)
         {
@@ -60,11 +65,13 @@ public class Ship : MonoBehaviour
         isSinking = true;
         gameObject.AddComponent<ShipSink>();
 
-        // Desactivar todos los colliders del barco
         Collider[] colliders = GetComponentsInChildren<Collider>();
         foreach (var col in colliders)
-        {
             col.enabled = false;
+
+        if (StatsTracker.Instance != null)
+        {
+            StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime);
         }
     }
 

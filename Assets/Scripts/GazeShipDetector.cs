@@ -13,12 +13,14 @@ public class GazeShipDetector : MonoBehaviour
     public float gazeHoldTime = 2f;
 
     private Ship currentLookedShip = null;
+    private GameObject currentLookedButton = null;
     private float gazeTimer = 0f;
     private Vector3 gazeTargetPoint;
 
-    // NUEVO: Input
     public Controls controls;
     private InputAction fireAction;
+
+    private string botonesLayerName = "Botones";
 
     void OnEnable()
     {
@@ -33,54 +35,80 @@ public class GazeShipDetector : MonoBehaviour
         fireAction.Disable();
     }
 
+    public void ResetDetector()
+    {
+        // Asegúrate de deshabilitar el control anterior
+        if (fireAction != null)
+        {
+            fireAction.Disable();  // Deshabilitar acción anterior
+            fireAction.performed -= _ => OnTriggerPressed(); // Eliminar suscripción
+        }
+
+        // Crear nuevos controles y habilitar los eventos
+        controls = new Controls();
+        fireAction = controls.PlayerControls.Fire;
+        fireAction.Enable();
+        fireAction.performed += _ => OnTriggerPressed();
+    }
+
+
+    public void EnableControls() => fireAction?.Enable();
+    public void DisableControls() => fireAction?.Disable();
+
     void Update()
     {
-        // Verificar si el seguimiento ocular está disponible
-        if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
-            return;
+        if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable()) return;
 
         Vector3 eyeOrigin, eyeDirection;
 
         if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
             EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
         {
-            // Convertir el origen y la dirección del ojo a coordenadas del mundo
             Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
             Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-
             Ray ray = new Ray(worldOrigin, worldDirection);
             RaycastHit hit;
 
-            // Lanzar un rayo para detectar el barco
+            int buttonMask = LayerMask.GetMask(botonesLayerName);
+
+            // 1?? Primero miramos si hay botón
+            if (Physics.Raycast(ray, out hit, maxDistance, buttonMask))
+            {
+                GameObject lookedObject = hit.collider.gameObject;
+                gazeTargetPoint = hit.point;
+
+                if (lookedObject != currentLookedButton)
+                {
+                    ResetPreviousLook();
+                    currentLookedButton = lookedObject;
+                    HighlightButton(currentLookedButton, true);
+                }
+                return;
+            }
+
+            // 2?? Si no hay botón, buscamos barcos
             if (Physics.Raycast(ray, out hit, maxDistance))
             {
                 Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
                 gazeTargetPoint = hit.point;
 
-                // Si estamos mirando un barco
                 if (lookedShip != null)
                 {
                     if (lookedShip != currentLookedShip)
                     {
-                        // Si cambiamos de barco, restablecemos la mirada anterior
                         ResetPreviousLook();
                         currentLookedShip = lookedShip;
                         currentLookedShip.Highlight(true);
                         gazeTimer = 0f;
                     }
-                    else
+                    else if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyView ||
+                             GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
                     {
-                        // Solo contamos el tiempo de la mirada si estamos en los modos apropiados
-                        if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyView ||
-                            GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
+                        gazeTimer += Time.deltaTime;
+                        if (gazeTimer >= gazeHoldTime)
                         {
-                            gazeTimer += Time.deltaTime;
-
-                            if (gazeTimer >= gazeHoldTime)
-                            {
-                                FireCannonball(currentLookedShip);
-                                ResetPreviousLook();
-                            }
+                            FireCannonball(currentLookedShip);
+                            ResetPreviousLook();
                         }
                     }
                 }
@@ -100,55 +128,76 @@ public class GazeShipDetector : MonoBehaviour
     {
         if (currentLookedShip != null)
         {
-            // Desactivar la iluminación del barco si no estamos mirando a un barco
             currentLookedShip.Highlight(false);
             currentLookedShip = null;
+        }
+
+        if (currentLookedButton != null)
+        {
+            HighlightButton(currentLookedButton, false);
+            currentLookedButton = null;
         }
 
         gazeTimer = 0f;
     }
 
-    // Disparo con gatillo
+    void HighlightButton(GameObject button, bool highlight)
+    {
+        Renderer renderer = button.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = highlight ? new Color(1f, 0.6f, 0f) : Color.white;
+            button.transform.localScale = highlight ? button.transform.localScale * 1.1f : button.transform.localScale / 1.1f;
+        }
+    }
+
     void OnTriggerPressed()
     {
-        // Solo permitimos disparar si el barco está siendo mirado y el modo es apropiado
-        if (currentLookedShip != null)
+        if (currentLookedShip != null &&
+            (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyController ||
+             GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both))
         {
-            // Solo permitimos disparo con gatillo si el modo es SoloMando o Ambas
-            if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyController ||
-                GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
-            {
-                FireCannonball(currentLookedShip);
-                ResetPreviousLook();
-            }
+            FireCannonball(currentLookedShip);
+            ResetPreviousLook();
+        }
+        else if (currentLookedButton != null)
+        {
+            // Disparo físico hacia el botón
+            GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
+            Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
+
+            Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
+            float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
+            float adjustedForce = Mathf.Max(200f, distance * forceMultiplier); // Usa una fuerza mínima
+            rb.AddForce(direction * adjustedForce);
+
+            ResetPreviousLook();
         }
     }
 
     void FireCannonball(Ship target)
     {
         GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
-        Rigidbody rb = cannonball.GetComponent<Rigidbody>();
+        Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
 
-        if (rb == null)
-            rb = cannonball.AddComponent<Rigidbody>();
-
-        // Calculamos la dirección del disparo
         Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
         float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
         float adjustedForce = distance * forceMultiplier;
-
-        // Aplicamos la fuerza al proyectil
         rb.AddForce(direction * adjustedForce);
 
-        CannonballShip cannonballShipScript = cannonball.GetComponent<CannonballShip>();
-        if (cannonballShipScript != null)
+        CannonballShip cannonballScript = cannonball.GetComponent<CannonballShip>();
+        if (cannonballScript != null)
         {
-            cannonballShipScript.targetShip = target;
+            cannonballScript.targetShip = target;
         }
     }
+
+
 }
 
 #endif
+
+
 
 
 

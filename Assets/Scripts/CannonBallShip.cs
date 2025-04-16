@@ -1,6 +1,7 @@
 #if WAVE_SDK_IMPORTED
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CannonballShip : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class CannonballShip : MonoBehaviour
     {
         GameObject hitObj = collision.gameObject;
 
-        // Verificamos que el objeto tenga la etiqueta "Ship"
+        // 1. Si colisionamos con un barco válido
         if (hitObj.CompareTag("Ship"))
         {
             Ship ship = hitObj.GetComponent<Ship>();
@@ -20,6 +21,13 @@ public class CannonballShip : MonoBehaviour
             }
 
             Destroy(gameObject); // Destruir la bala
+        }
+
+        // 2. Si colisionamos con un botón
+        else if (hitObj.CompareTag("Boton"))
+        {
+            SceneManager.LoadScene("Menu"); 
+            Destroy(gameObject); // Destruir la bala tras interactuar
         }
     }
 }
