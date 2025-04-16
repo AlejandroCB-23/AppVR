@@ -143,6 +143,8 @@ PlayerSettings:
   bundleVersion: 0.1
   preloadedAssets:
   - {fileID: -944628639613478452, guid: cdbdd7278fdc8504fb7a4fab0d8db030, type: 3}
+  - {fileID: 11400000, guid: a98bd39953574d04db3587d0ccffe141, type: 2}
+  - {fileID: -743597097375796814, guid: debbb6687016a9646b8fd5a7b560beda, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -857,7 +859,13 @@ PlayerSettings:
   windowsGamepadBackendHint: 0
   cloudProjectId: c4ca9eef-b383-458d-a44e-e65ec78ef8b1
   framebufferDepthMemorylessMode: 0
-  qualitySettingsNames: []
+  qualitySettingsNames:
+  - Very Low
+  - Low
+  - Medium
+  - High
+  - Very High
+  - Ultra
   projectName: Prueba 2025-03-29_11-59-32
   organizationId: alexcb23
   cloudEnabled: 0

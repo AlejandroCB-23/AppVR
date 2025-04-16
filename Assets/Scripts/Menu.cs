@@ -9,10 +9,19 @@ namespace menu
 
     public class GazeMenuVive : MonoBehaviour
     {
+        [Header("Referencias de los menús")]
+        public GameObject MainMenu;
+        public GameObject SelectMode;
+
         [Header("Referencias de los 'botones'")]
-        private GameObject modoTestObject;
-        private GameObject modoAleatorioObject;
-        private GameObject salirObject;
+        public GameObject TestMode;
+        public GameObject RandomMode;
+        public GameObject Exit;
+
+        public GameObject OnlyView;
+        public GameObject OnlyController;
+        public GameObject Both;
+        public GameObject Back;
 
         [Header("Distancia de interacción")]
         public float maxDistance = Mathf.Infinity;
@@ -32,18 +41,29 @@ namespace menu
         public Transform cannonTransform;
         public float forceMultiplier = 500f; // Ajustar fuerza
 
-        private Vector3 gazeTargetPoint; //Punto donde ira la bala
+        private Vector3 gazeTargetPoint; // Punto donde irá la bala
+
+        private GameObject modoTestObject;
+        private GameObject modoAleatorioObject;
+        private GameObject salirObject;
+
+        private GameObject onlyViewObject;
+        private GameObject onlyControllerObject;
+        private GameObject bothObject;
+        private GameObject backObject;
 
         void Start()
         {
-            modoTestObject = GameObject.Find("ModoTest");
-            modoAleatorioObject = GameObject.Find("ModoAleatorio");
-            salirObject = GameObject.Find("Salir");
+            MainMenu.SetActive(true);
+            SelectMode.SetActive(false);
 
-            if (modoTestObject == null || modoAleatorioObject == null || salirObject == null)
-            {
-                Debug.LogError("No se han encontrado todos los objetos");
-            }
+            modoTestObject = TestMode;
+            modoAleatorioObject = RandomMode;
+            salirObject = Exit;
+            onlyViewObject = OnlyView;
+            onlyControllerObject = OnlyController;
+            bothObject = Both;
+            backObject = Back;
         }
 
         void OnEnable()
@@ -79,7 +99,7 @@ namespace menu
                 if (Physics.Raycast(ray, out hit, maxDistance, mask))
                 {
                     GameObject lookedObject = hit.collider.gameObject;
-                    gazeTargetPoint = hit.point; // Punto donde se mira
+                    gazeTargetPoint = hit.point;
 
                     if (lookedObject != currentLookedObject)
                     {
@@ -133,7 +153,6 @@ namespace menu
                 rb = cannonball.AddComponent<Rigidbody>();
             }
 
-            // Disparo al punto que miro
             Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
             float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
             float adjustedForce = distance * forceMultiplier;
@@ -149,7 +168,8 @@ namespace menu
         {
             if (button == modoTestObject)
             {
-                SceneManager.LoadScene("ModoTest");
+                MainMenu.SetActive(false);
+                SelectMode.SetActive(true);
             }
             else if (button == modoAleatorioObject)
             {
@@ -159,12 +179,33 @@ namespace menu
             {
                 Application.Quit();
             }
+            else if (button == onlyViewObject)
+            {
+                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.SoloVista;
+                SceneManager.LoadScene("ModoTest");
+            }
+            else if (button == onlyControllerObject)
+            {
+                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.SoloMando;
+                SceneManager.LoadScene("ModoTest");
+            }
+            else if (button == bothObject)
+            {
+                GameSettings.ModoDisparoActual = GameSettings.DisparoMode.Ambas;
+                SceneManager.LoadScene("ModoTest");
+            }
+            else if (button == backObject)
+            {
+                SelectMode.SetActive(false);
+                MainMenu.SetActive(true);
+            }
         }
     }
 }
 
-
 #endif
+
+
 
 
 

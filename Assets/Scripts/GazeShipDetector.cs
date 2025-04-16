@@ -35,6 +35,7 @@ public class GazeShipDetector : MonoBehaviour
 
     void Update()
     {
+        // Verificar si el seguimiento ocular está disponible
         if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
             return;
 
@@ -43,21 +44,25 @@ public class GazeShipDetector : MonoBehaviour
         if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
             EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
         {
+            // Convertir el origen y la dirección del ojo a coordenadas del mundo
             Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
             Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
 
             Ray ray = new Ray(worldOrigin, worldDirection);
             RaycastHit hit;
 
+            // Lanzar un rayo para detectar el barco
             if (Physics.Raycast(ray, out hit, maxDistance))
             {
                 Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
                 gazeTargetPoint = hit.point;
 
+                // Si estamos mirando un barco
                 if (lookedShip != null)
                 {
                     if (lookedShip != currentLookedShip)
                     {
+                        // Si cambiamos de barco, restablecemos la mirada anterior
                         ResetPreviousLook();
                         currentLookedShip = lookedShip;
                         currentLookedShip.Highlight(true);
@@ -65,12 +70,17 @@ public class GazeShipDetector : MonoBehaviour
                     }
                     else
                     {
-                        gazeTimer += Time.deltaTime;
-
-                        if (gazeTimer >= gazeHoldTime)
+                        // Solo contamos el tiempo de la mirada si estamos en los modos apropiados
+                        if (GameSettings.ModoDisparoActual == GameSettings.DisparoMode.SoloVista ||
+                            GameSettings.ModoDisparoActual == GameSettings.DisparoMode.Ambas)
                         {
-                            FireCannonball(currentLookedShip);
-                            ResetPreviousLook();
+                            gazeTimer += Time.deltaTime;
+
+                            if (gazeTimer >= gazeHoldTime)
+                            {
+                                FireCannonball(currentLookedShip);
+                                ResetPreviousLook();
+                            }
                         }
                     }
                 }
@@ -90,7 +100,7 @@ public class GazeShipDetector : MonoBehaviour
     {
         if (currentLookedShip != null)
         {
-            // Desactivar el círculo indicador si no estamos mirando el barco
+            // Desactivar la iluminación del barco si no estamos mirando a un barco
             currentLookedShip.Highlight(false);
             currentLookedShip = null;
         }
@@ -98,13 +108,19 @@ public class GazeShipDetector : MonoBehaviour
         gazeTimer = 0f;
     }
 
-    // NUEVO: Disparo con gatillo
+    // Disparo con gatillo
     void OnTriggerPressed()
     {
+        // Solo permitimos disparar si el barco está siendo mirado y el modo es apropiado
         if (currentLookedShip != null)
         {
-            FireCannonball(currentLookedShip);
-            ResetPreviousLook();
+            // Solo permitimos disparo con gatillo si el modo es SoloMando o Ambas
+            if (GameSettings.ModoDisparoActual == GameSettings.DisparoMode.SoloMando ||
+                GameSettings.ModoDisparoActual == GameSettings.DisparoMode.Ambas)
+            {
+                FireCannonball(currentLookedShip);
+                ResetPreviousLook();
+            }
         }
     }
 
@@ -116,10 +132,12 @@ public class GazeShipDetector : MonoBehaviour
         if (rb == null)
             rb = cannonball.AddComponent<Rigidbody>();
 
+        // Calculamos la dirección del disparo
         Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
         float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
         float adjustedForce = distance * forceMultiplier;
 
+        // Aplicamos la fuerza al proyectil
         rb.AddForce(direction * adjustedForce);
 
         CannonballShip cannonballShipScript = cannonball.GetComponent<CannonballShip>();
@@ -131,6 +149,7 @@ public class GazeShipDetector : MonoBehaviour
 }
 
 #endif
+
 
 
 
