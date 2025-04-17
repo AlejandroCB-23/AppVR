@@ -26,7 +26,7 @@ public class CannonballShip : MonoBehaviour
         // 2. Si colisionamos con un botón
         else if (hitObj.CompareTag("Boton"))
         {
-            SceneManager.LoadScene("Menu"); 
+            SceneManager.LoadScene("Menu", LoadSceneMode.Single);
             Destroy(gameObject); // Destruir la bala tras interactuar
         }
     }

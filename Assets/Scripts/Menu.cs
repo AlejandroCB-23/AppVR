@@ -33,24 +33,18 @@ namespace menu
         private GameObject currentLookedObject = null;
         private Color originalColor;
         private Material currentMat;
-
         private string botonesLayerName = "Botones";
 
         [Header("Prefab de la bola de cañón y Transform del cañón")]
         public GameObject cannonballPrefab;
         public Transform cannonTransform;
-        public float forceMultiplier = 500f; // Ajustar fuerza
+        public float forceMultiplier = 500f;
 
-        private Vector3 gazeTargetPoint; // Punto donde irá la bala
+        private Vector3 gazeTargetPoint;
 
-        private GameObject modoTestObject;
-        private GameObject modoAleatorioObject;
-        private GameObject salirObject;
-
-        private GameObject onlyViewObject;
-        private GameObject onlyControllerObject;
-        private GameObject bothObject;
-        private GameObject backObject;
+        // Objetos de menú
+        private GameObject modoTestObject, modoAleatorioObject, salirObject;
+        private GameObject onlyViewObject, onlyControllerObject, bothObject, backObject;
 
         void Start()
         {
@@ -66,18 +60,23 @@ namespace menu
             backObject = Back;
         }
 
+        // --- INPUT SUBSCRIPTION CHANGES ---
+        private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
+
         void OnEnable()
         {
             controls = new Controls();
             fireAction = controls.PlayerControls.Fire;
             fireAction.Enable();
-            fireAction.performed += _ => OnTriggerPressed();
+            fireAction.performed += OnFire;
         }
 
         void OnDisable()
         {
+            fireAction.performed -= OnFire;
             fireAction.Disable();
         }
+        // ---------------------------------
 
         void Update()
         {
@@ -90,7 +89,6 @@ namespace menu
             {
                 Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
                 Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-
                 Ray ray = new Ray(worldOrigin, worldDirection);
                 RaycastHit hit;
 
@@ -146,17 +144,11 @@ namespace menu
             if (currentLookedObject == null) return;
 
             GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
-
-            Rigidbody rb = cannonball.GetComponent<Rigidbody>();
-            if (rb == null)
-            {
-                rb = cannonball.AddComponent<Rigidbody>();
-            }
+            Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
 
             Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
             float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
             float adjustedForce = distance * forceMultiplier;
-
             rb.AddForce(direction * adjustedForce);
 
             Cannonball cannonballScript = cannonball.AddComponent<Cannonball>();
@@ -184,17 +176,17 @@ namespace menu
             else if (button == onlyViewObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
-                SceneManager.LoadScene("ModoTest");
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
             }
             else if (button == onlyControllerObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
-                SceneManager.LoadScene("ModoTest");
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
             }
             else if (button == bothObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
-                SceneManager.LoadScene("ModoTest");
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
             }
             else if (button == backObject)
             {
@@ -203,9 +195,12 @@ namespace menu
             }
         }
     }
+
 }
 
 #endif
+
+
 
 
 

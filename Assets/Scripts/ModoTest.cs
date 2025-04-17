@@ -21,6 +21,7 @@ public class FixedSpawner : MonoBehaviour
 
     void Start()
     {
+        StatsTracker.Instance.ResetAll();
         FindObjectOfType<GazeShipDetector>()?.ResetDetector();
 
         schedule.Clear();

@@ -19,48 +19,48 @@ public class GazeShipDetector : MonoBehaviour
 
     public Controls controls;
     private InputAction fireAction;
-
     private string botonesLayerName = "Botones";
+
+    // --- INPUT SUBSCRIPTION CHANGES ---
+    private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
     void OnEnable()
     {
         controls = new Controls();
         fireAction = controls.PlayerControls.Fire;
         fireAction.Enable();
-        fireAction.performed += _ => OnTriggerPressed();
+        fireAction.performed += OnFire;
     }
 
     void OnDisable()
     {
+        fireAction.performed -= OnFire;
         fireAction.Disable();
     }
+    // ---------------------------------
 
     public void ResetDetector()
     {
-        // Asegúrate de deshabilitar el control anterior
-        if (fireAction != null)
-        {
-            fireAction.Disable();  // Deshabilitar acción anterior
-            fireAction.performed -= _ => OnTriggerPressed(); // Eliminar suscripción
-        }
+        // Si realmente necesitas reiniciar:
+        fireAction.performed -= OnFire;
+        fireAction.Disable();
+        controls.Dispose();
 
-        // Crear nuevos controles y habilitar los eventos
         controls = new Controls();
         fireAction = controls.PlayerControls.Fire;
         fireAction.Enable();
-        fireAction.performed += _ => OnTriggerPressed();
+        fireAction.performed += OnFire;
     }
-
 
     public void EnableControls() => fireAction?.Enable();
     public void DisableControls() => fireAction?.Disable();
 
     void Update()
     {
-        if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable()) return;
+        if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
+            return;
 
         Vector3 eyeOrigin, eyeDirection;
-
         if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
             EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
         {
@@ -71,7 +71,7 @@ public class GazeShipDetector : MonoBehaviour
 
             int buttonMask = LayerMask.GetMask(botonesLayerName);
 
-            // 1?? Primero miramos si hay botón
+            // Primero, botones:
             if (Physics.Raycast(ray, out hit, maxDistance, buttonMask))
             {
                 GameObject lookedObject = hit.collider.gameObject;
@@ -86,7 +86,7 @@ public class GazeShipDetector : MonoBehaviour
                 return;
             }
 
-            // 2?? Si no hay botón, buscamos barcos
+            // Luego, barcos:
             if (Physics.Raycast(ray, out hit, maxDistance))
             {
                 Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
@@ -147,7 +147,9 @@ public class GazeShipDetector : MonoBehaviour
         if (renderer != null)
         {
             renderer.material.color = highlight ? new Color(1f, 0.6f, 0f) : Color.white;
-            button.transform.localScale = highlight ? button.transform.localScale * 1.1f : button.transform.localScale / 1.1f;
+            button.transform.localScale = highlight
+                ? button.transform.localScale * 1.1f
+                : button.transform.localScale / 1.1f;
         }
     }
 
@@ -162,13 +164,12 @@ public class GazeShipDetector : MonoBehaviour
         }
         else if (currentLookedButton != null)
         {
-            // Disparo físico hacia el botón
             GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
             Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
 
             Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
             float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
-            float adjustedForce = Mathf.Max(200f, distance * forceMultiplier); // Usa una fuerza mínima
+            float adjustedForce = Mathf.Max(200f, distance * forceMultiplier);
             rb.AddForce(direction * adjustedForce);
 
             ResetPreviousLook();
@@ -187,15 +188,12 @@ public class GazeShipDetector : MonoBehaviour
 
         CannonballShip cannonballScript = cannonball.GetComponent<CannonballShip>();
         if (cannonballScript != null)
-        {
             cannonballScript.targetShip = target;
-        }
     }
-
-
 }
 
 #endif
+
 
 
 

@@ -7,27 +7,19 @@ public class StatsTracker : MonoBehaviour
 
     private int piratesEliminated = 0;
     private int fishingEliminated = 0;
-
     private int currentPirateStreak = 0;
     private int bestPirateStreak = 0;
-
     private float lastFishingEliminatedTime = 0f;
     private float maxTimeWithoutFishing = 0f;
-
     private List<float> pirateSinkTimes = new List<float>();
     private float shortestPirateSinkTime = float.MaxValue;
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
-
-        DontDestroyOnLoad(gameObject); // Para que no se destruya al cambiar de escena
+        // Sólo una instancia en esta escena: se sobrescribe cada vez que cargues ModoTest
+        Instance = this;
     }
 
-    // Llamado cuando se elimina un barco
     public void RegisterShipElimination(bool isPirate, float spawnTime)
     {
         float currentTime = Time.time;
@@ -40,24 +32,21 @@ public class StatsTracker : MonoBehaviour
 
             float sinkTime = currentTime - spawnTime;
             pirateSinkTimes.Add(sinkTime);
-
             if (sinkTime < shortestPirateSinkTime)
                 shortestPirateSinkTime = sinkTime;
         }
         else
         {
             fishingEliminated++;
-
             float timeSinceLast = currentTime - lastFishingEliminatedTime;
             if (lastFishingEliminatedTime > 0)
                 maxTimeWithoutFishing = Mathf.Max(maxTimeWithoutFishing, timeSinceLast);
-
             lastFishingEliminatedTime = currentTime;
-
-            currentPirateStreak = 0; // Reset streak cuando eliminas un pesquero
+            currentPirateStreak = 0;
         }
     }
 
+    // Getters…
     public int GetPiratesEliminated() => piratesEliminated;
     public int GetFishingEliminated() => fishingEliminated;
     public int GetBestPirateStreak() => bestPirateStreak;
@@ -72,5 +61,19 @@ public class StatsTracker : MonoBehaviour
             sum += v;
         return sum / values.Count;
     }
+
+    public void ResetAll()
+    {
+        piratesEliminated = 0;
+        fishingEliminated = 0;
+        currentPirateStreak = 0;
+        bestPirateStreak = 0;
+        lastFishingEliminatedTime = 0f;
+        maxTimeWithoutFishing = 0f;
+        pirateSinkTimes.Clear();
+        shortestPirateSinkTime = float.MaxValue;
+    }
+
 }
+
 
