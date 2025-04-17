@@ -15,6 +15,7 @@ public class StatsTracker : MonoBehaviour
 
     private List<float> pirateSinkTimes = new List<float>();
     private float shortestPirateSinkTime = float.MaxValue;
+    public bool gameOver = false;
 
     private float gameStartTime;
 
@@ -88,13 +89,21 @@ public class StatsTracker : MonoBehaviour
     public float GetMaxTimeWithoutFishing()
     {
         float now = Time.timeSinceLevelLoad;
+        float sinceLastFishing = fishingEliminated == 0 ? now - gameStartTime : now - lastFishingEliminatedTime;
+        float rawMax = Mathf.Max(maxTimeWithoutFishing, sinceLastFishing);
 
-        if (fishingEliminated == 0)
-            return now - gameStartTime; // Si nunca se eliminó un pesquero, devuelve el tiempo transcurrido desde el inicio del juego
+        // Ajustamos solo si el juego ha terminado y el mayor tiempo es el último tramo
+        bool lastIntervalIsMax = sinceLastFishing > maxTimeWithoutFishing;
 
-        float sinceLastFishing = now - lastFishingEliminatedTime;
-        return Mathf.Max(maxTimeWithoutFishing, sinceLastFishing); // Compara el máximo entre el último intervalo y el histórico
+        if (gameOver && lastIntervalIsMax)
+        {
+            rawMax -= 3f; // Descontamos el delay del mensaje final
+        }
+
+        return Mathf.Max(0f, rawMax); // Aseguramos que no sea negativo
     }
+
+
 
     // Reinicia todas las estadísticas
     public void ResetAll()

@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
             }
 
             Invoke(nameof(ShowEndStats), delayBeforeShowingStats);  // Mostrar las estadísticas después de un pequeño retraso
+            StatsTracker.Instance.gameOver = true;
         }
     }
 

@@ -3825,6 +3825,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6eb77848d8cd91949ae7cea389d2c81c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameOver: 0
 --- !u!4 &835606580 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 826a837d489ca9a4b961298e08b69e8a, type: 3}
@@ -5009,7 +5010,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -109.9, y: -115.4}
+  m_AnchoredPosition: {x: -111.5, y: -117.8}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1291617894
@@ -7232,7 +7233,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.69366974, z: -0, w: 0.7202933}
   m_LocalPosition: {x: 325, y: 65.33601, z: -383}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1456289155}
