@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections;
 
-
 public class Ship : MonoBehaviour
 {
     private float speed;
@@ -19,7 +18,7 @@ public class Ship : MonoBehaviour
     {
         speed = customSpeed;
         isPirate = pirate;
-        spawnTime = Time.time;
+        spawnTime = Time.timeSinceLevelLoad; 
 
         Renderer rend = GetComponentInChildren<Renderer>();
         if (rend != null)
@@ -38,7 +37,7 @@ public class Ship : MonoBehaviour
     {
         if (indicatorCircle != null)
         {
-            indicatorCircle.SetActive(active);  // Mostrar u ocultar el círculo
+            indicatorCircle.SetActive(active);
         }
     }
 
@@ -79,8 +78,8 @@ public class Ship : MonoBehaviour
     {
         return isSinking;
     }
-
 }
+
 
 
 
