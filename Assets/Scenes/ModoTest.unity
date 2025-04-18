@@ -2575,7 +2575,7 @@ MonoBehaviour:
   - {fileID: 2734642171347104252, guid: 2fba502437b2fab41b32ec8c8054b82d, type: 3}
   - {fileID: 6178692450375849595, guid: 5930070f8025e8a43a1715aac35dbc76, type: 3}
   circleIndicatorPrefab: {fileID: 2875427239384993938, guid: b656591151a82d84283f0e2d11f1a516, type: 3}
-  gameManager: {fileID: 0}
+  gameManager: {fileID: 316080948}
 --- !u!4 &470224381
 Transform:
   m_ObjectHideFlags: 0
@@ -3774,6 +3774,7 @@ GameObject:
   - component: {fileID: 782628377}
   - component: {fileID: 782628378}
   - component: {fileID: 782628379}
+  - component: {fileID: 782628380}
   m_Layer: 0
   m_Name: EyeTracker
   m_TagString: Untagged
@@ -3826,6 +3827,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameOver: 0
+--- !u!114 &782628380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782628375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56bd1177b3dd3f24e8eb4e13229540ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &835606580 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 826a837d489ca9a4b961298e08b69e8a, type: 3}
@@ -4815,7 +4828,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 470224382}
-  - {fileID: 1837559485}
   - {fileID: 1186101871}
   - {fileID: 1244594884}
   - {fileID: 1141374734}
@@ -4837,6 +4849,7 @@ Transform:
   - {fileID: 642178995}
   - {fileID: 1207409701}
   - {fileID: 1076467004}
+  - {fileID: 1837559482}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1207409700
@@ -6939,7 +6952,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3bcfe5c2b3245304293088b028ddc185, type: 3}
   m_PrefabInstance: {fileID: 1837559480}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1837559485 stripped
+--- !u!4 &1837559482 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3bcfe5c2b3245304293088b028ddc185, type: 3}
   m_PrefabInstance: {fileID: 1837559480}
