@@ -1,3 +1,4 @@
+#if WAVE_SDK_IMPORTED
 using UnityEngine;
 using TMPro;
 
@@ -14,7 +15,6 @@ public class CountdownUI : MonoBehaviour
 
     public float expiredMessageDuration = 2f;
 
-    // Para restaurar estilos originales
     private TextAlignmentOptions originalAlignment;
     private bool originalAutoSize;
     private float originalFontSize;
@@ -24,7 +24,6 @@ public class CountdownUI : MonoBehaviour
         gameManager = FindObjectOfType<GameManager>();
         counterText.color = normalColor;
 
-        // Guardar estilos originales para restaurarlos después
         originalAlignment = counterText.alignment;
         originalAutoSize = counterText.enableAutoSizing;
         originalFontSize = counterText.fontSize;
@@ -56,7 +55,6 @@ public class CountdownUI : MonoBehaviour
             return;
         }
 
-        // Restaurar estilos normales si no estamos mostrando el mensaje
         RestoreOriginalStyle();
 
         int minutes = Mathf.FloorToInt(time / 60f);
@@ -70,7 +68,6 @@ public class CountdownUI : MonoBehaviour
         counterText.text = "TiEMPO\nAgotado";
         counterText.color = warningColor;
 
-        // Ajustar el estilo temporal para el mensaje
         counterText.alignment = TextAlignmentOptions.Center;
         counterText.enableAutoSizing = true;
         counterText.fontSizeMin = 30f;
@@ -93,8 +90,7 @@ public class CountdownUI : MonoBehaviour
     }
 }
 
-
-
+#endif
 
 
 

@@ -1,10 +1,11 @@
+#if WAVE_SDK_IMPORTED
 public class ShipSpawnEvent
 {
-    public float time;        // Cuándo aparece el barco
-    public int lane;          // En qué carril aparece (0, 1, 2)
-    public bool isPirate;     // Si es pirata o no
-    public int sizeIndex;     // Tamaño: 0 = pequeño, 1 = mediano, 2 = grande
-    public float speed;       // Velocidad específica
+    public float time;        
+    public int lane;          
+    public bool isPirate;     
+    public int sizeIndex;    
+    public float speed;       
 
     public ShipSpawnEvent(float t, int l, bool pirate, int size, float spd)
     {
@@ -16,7 +17,7 @@ public class ShipSpawnEvent
     }
 }
 
-
+#endif
 
 
 

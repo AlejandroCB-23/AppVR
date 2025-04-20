@@ -2,34 +2,41 @@
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class CannonballShip : MonoBehaviour
 {
-    [HideInInspector] public Ship targetShip; // El barco objetivo
+    [HideInInspector] public Ship targetShip; 
 
-    void OnCollisionEnter(Collision collision)
+    async void OnCollisionEnter(Collision collision)
     {
         GameObject hitObj = collision.gameObject;
-
-        // 1. Si colisionamos con un barco válido
+        
+        // Ship
         if (hitObj.CompareTag("Ship"))
         {
             Ship ship = hitObj.GetComponent<Ship>();
             if (ship != null && !ship.IsSinking())
             {
-                ship.Sink(); // Hundir el barco
+                ship.Sink(); 
             }
 
-            Destroy(gameObject); // Destruir la bala
+            Destroy(gameObject); 
         }
 
-        // 2. Si colisionamos con un botón
+        // Button
         else if (hitObj.CompareTag("Boton"))
         {
+            if (EyeDataCollector.Instance != null)
+            {
+                await EyeDataCollector.Instance.SaveFinalStatsAsync(); 
+            }
+            await Task.Delay(300);
+
             SceneManager.LoadScene("Menu", LoadSceneMode.Single);
-            Destroy(gameObject); // Destruir la bala tras interactuar
+            Destroy(gameObject);
         }
     }
 }
-
 #endif
+

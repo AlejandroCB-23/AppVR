@@ -21,7 +21,6 @@ public class GazeShipDetector : MonoBehaviour
     private InputAction fireAction;
     private string botonesLayerName = "Botones";
 
-    // --- INPUT SUBSCRIPTION CHANGES ---
     private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
     void OnEnable()
@@ -37,11 +36,9 @@ public class GazeShipDetector : MonoBehaviour
         fireAction.performed -= OnFire;
         fireAction.Disable();
     }
-    // ---------------------------------
 
     public void ResetDetector()
     {
-        // Si realmente necesitas reiniciar:
         fireAction.performed -= OnFire;
         fireAction.Disable();
         controls.Dispose();
@@ -71,7 +68,6 @@ public class GazeShipDetector : MonoBehaviour
 
             int buttonMask = LayerMask.GetMask(botonesLayerName);
 
-            // Primero, botones:
             if (Physics.Raycast(ray, out hit, maxDistance, buttonMask))
             {
                 GameObject lookedObject = hit.collider.gameObject;
@@ -86,7 +82,6 @@ public class GazeShipDetector : MonoBehaviour
                 return;
             }
 
-            // Luego, barcos:
             if (Physics.Raycast(ray, out hit, maxDistance))
             {
                 Ship lookedShip = hit.collider.GetComponentInParent<Ship>();

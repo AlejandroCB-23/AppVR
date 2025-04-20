@@ -1,3 +1,4 @@
+#if WAVE_SDK_IMPORTED
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -58,22 +59,19 @@ public class StatsTracker : MonoBehaviour
             }
 
             lastFishingEliminatedTime = currentTime;
-            currentPirateStreak = 0; // Reset pirate streak on fishing elimination
+            currentPirateStreak = 0; 
         }
     }
 
-    // Métodos para obtener estadísticas
     public int GetPiratesEliminated() => piratesEliminated;
     public int GetFishingEliminated() => fishingEliminated;
     public int GetBestPirateStreak() => bestPirateStreak;
 
-    // Tiempo más rápido para hundir un pirata
     public float GetShortestTimeToSinkPirate()
     {
         return pirateSinkTimes.Count == 0 ? 0f : shortestPirateSinkTime;
     }
 
-    // Promedio del tiempo para hundir un pirata
     public float GetAverageTimeToSinkPirate()
     {
         if (pirateSinkTimes.Count == 0) return 0f;
@@ -85,27 +83,22 @@ public class StatsTracker : MonoBehaviour
         return total / pirateSinkTimes.Count;
     }
 
-    // Tiempo máximo sin eliminar pesqueros
     public float GetMaxTimeWithoutFishing()
     {
         float now = Time.timeSinceLevelLoad;
         float sinceLastFishing = fishingEliminated == 0 ? now - gameStartTime : now - lastFishingEliminatedTime;
         float rawMax = Mathf.Max(maxTimeWithoutFishing, sinceLastFishing);
 
-        // Ajustamos solo si el juego ha terminado y el mayor tiempo es el último tramo
         bool lastIntervalIsMax = sinceLastFishing > maxTimeWithoutFishing;
 
         if (gameOver && lastIntervalIsMax)
         {
-            rawMax -= 3f; // Descontamos el delay del mensaje final
+            rawMax -= 3f; 
         }
 
-        return Mathf.Max(0f, rawMax); // Aseguramos que no sea negativo
+        return Mathf.Max(0f, rawMax); 
     }
 
-
-
-    // Reinicia todas las estadísticas
     public void ResetAll()
     {
         piratesEliminated = 0;
@@ -120,7 +113,7 @@ public class StatsTracker : MonoBehaviour
     }
 }
 
-
+#endif
 
 
 

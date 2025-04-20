@@ -1,32 +1,32 @@
+#if WAVE_SDK_IMPORTED
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
-    public float gameDuration = 120f;  // Duración del juego
-    private float timer;  // Temporizador del juego
-    private bool gameEnded = false;  // Estado del juego (si ha terminado)
+    public float gameDuration = 120f; 
+    private float timer;  
+    private bool gameEnded = false;  
 
-    public GameObject endStatsCanvas; // Canvas que se activa al final
-    public GameObject Timer;  // Referencia al temporizador en pantalla
-    public float delayBeforeShowingStats = 1f;  // Retraso para mostrar las estadísticas
+    public GameObject endStatsCanvas; 
+    public GameObject Timer;  
+    public float delayBeforeShowingStats = 1f;  
 
-    public float TimeRemaining => timer;  // Propiedad para obtener el tiempo restante
+    public float TimeRemaining => timer;  
 
-    // Referencias a controles
+    
     [SerializeField] private GazeShipDetector gazeShipDetector;
-    public InputAction fireAction; // Acción del gatillo
+    public InputAction fireAction; 
 
-    // Referencia al StatsUIManager
+   
     private StatsUIManager statsUIManager;
 
     void Start()
     {
         timer = gameDuration;
         if (endStatsCanvas != null)
-            endStatsCanvas.SetActive(false); // Ocultar el canvas de estadísticas al inicio
+            endStatsCanvas.SetActive(false); 
 
-        // Obtener la referencia al StatsUIManager dentro del canvas
         if (endStatsCanvas != null)
         {
             statsUIManager = endStatsCanvas.GetComponent<StatsUIManager>();
@@ -36,13 +36,13 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         if (gameEnded)
-            return;  // Si el juego terminó, no hacer nada más
+            return;  
 
-        timer -= Time.deltaTime;  // Reducir el tiempo del temporizador
+        timer -= Time.deltaTime;  
 
         if (timer <= 0f)
         {
-            timer = 0f;  // Asegurarnos de que el temporizador no se vuelva negativo
+            timer = 0f;  
             gameEnded = true;
 
             foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
                 Destroy(ship);
             }
 
-            Invoke(nameof(ShowEndStats), delayBeforeShowingStats);  // Mostrar las estadísticas después de un pequeño retraso
+            Invoke(nameof(ShowEndStats), delayBeforeShowingStats);  
             StatsTracker.Instance.gameOver = true;
         }
     }
@@ -59,23 +59,22 @@ public class GameManager : MonoBehaviour
     {
         GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
 
-        Timer.SetActive(false); // Desactivar el temporizador
+        Timer.SetActive(false); 
 
-        // Mostrar el canvas de estadísticas
+        
         if (endStatsCanvas != null)
         {
-            endStatsCanvas.SetActive(true);  // Activar el canvas de estadísticas
+            endStatsCanvas.SetActive(true);  
 
-            // Habilitar los controles de disparo para que el jugador pueda interactuar con los botones
+            
             if (gazeShipDetector != null)
             {
                 gazeShipDetector.EnableControls();
             }
 
-            // Verificar que statsUIManager no sea null antes de actualizar las estadísticas
+            
             if (statsUIManager != null)
             {
-                // Actualizar las estadísticas en la UI usando StatsUIManager
                 statsUIManager.UpdateStats(
                     StatsTracker.Instance.GetPiratesEliminated(),
                     StatsTracker.Instance.GetFishingEliminated(),
@@ -91,9 +90,7 @@ public class GameManager : MonoBehaviour
 
 
 }
-
-
-
+#endif
 
 
 

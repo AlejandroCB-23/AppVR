@@ -1,3 +1,4 @@
+#if WAVE_SDK_IMPORTED
 using UnityEngine;
 using System.Collections;
 
@@ -7,8 +8,6 @@ public class Ship : MonoBehaviour
     private Vector3 destination;
     private bool isSinking = false;
 
-    private Material shipMaterial;
-    private Color originalColor;
     private bool isPirate;
     private float spawnTime;
 
@@ -19,13 +18,6 @@ public class Ship : MonoBehaviour
         speed = customSpeed;
         isPirate = pirate;
         spawnTime = Time.timeSinceLevelLoad; 
-
-        Renderer rend = GetComponentInChildren<Renderer>();
-        if (rend != null)
-        {
-            shipMaterial = rend.material;
-            originalColor = shipMaterial.color;
-        }
     }
 
     public void SetDestination(Vector3 dest)
@@ -80,7 +72,7 @@ public class Ship : MonoBehaviour
     }
 }
 
-
+#endif
 
 
 

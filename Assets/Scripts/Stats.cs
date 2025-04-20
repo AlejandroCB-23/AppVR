@@ -1,6 +1,7 @@
+#if WAVE_SDK_IMPORTED
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // Si estás usando TextMeshPro
+using TMPro; 
 
 public class StatsUIManager : MonoBehaviour
 {
@@ -32,3 +33,4 @@ public class StatsUIManager : MonoBehaviour
     }
 }
 
+#endif
