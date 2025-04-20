@@ -6,6 +6,7 @@ namespace menu
     using UnityEngine.SceneManagement;
     using UnityEngine.InputSystem;
     using Wave.Essence.Eye;
+    using Alex.OcularVergenceLibrary;
 
     public class GazeMenuVive : MonoBehaviour
     {
@@ -42,7 +43,6 @@ namespace menu
 
         private Vector3 gazeTargetPoint;
 
-        // Objetos de menú
         private GameObject modoTestObject, modoAleatorioObject, salirObject;
         private GameObject onlyViewObject, onlyControllerObject, bothObject, backObject;
 
@@ -60,7 +60,6 @@ namespace menu
             backObject = Back;
         }
 
-        // --- INPUT SUBSCRIPTION CHANGES ---
         private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
         void OnEnable()
@@ -76,41 +75,29 @@ namespace menu
             fireAction.performed -= OnFire;
             fireAction.Disable();
         }
-        // ---------------------------------
 
         void Update()
         {
             if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
                 return;
 
-            Vector3 eyeOrigin, eyeDirection;
-            if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
-                EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
+            if (VergenceFunctions.TryRaycastHit(out RaycastHit hit, maxDistance, LayerMask.GetMask(botonesLayerName)))
             {
-                Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
-                Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-                Ray ray = new Ray(worldOrigin, worldDirection);
-                RaycastHit hit;
+                GameObject lookedObject = hit.collider.gameObject;
+                gazeTargetPoint = hit.point;
 
-                int mask = LayerMask.GetMask(botonesLayerName);
-
-                if (Physics.Raycast(ray, out hit, maxDistance, mask))
-                {
-                    GameObject lookedObject = hit.collider.gameObject;
-                    gazeTargetPoint = hit.point;
-
-                    if (lookedObject != currentLookedObject)
-                    {
-                        ResetPreviousLook();
-                        HighlightObject(lookedObject);
-                    }
-                }
-                else if (currentLookedObject != null)
+                if (lookedObject != currentLookedObject)
                 {
                     ResetPreviousLook();
+                    HighlightObject(lookedObject);
                 }
             }
+            else if (currentLookedObject != null)
+            {
+                ResetPreviousLook();
+            }
         }
+
 
         void HighlightObject(GameObject obj)
         {

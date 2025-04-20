@@ -6,6 +6,7 @@ using UnityEngine.Android;
 using UnityEngine;
 using Wave.Essence.Eye;
 using System.Threading.Tasks;
+using Alex.OcularVergenceLibrary;
 
 public class EyeDataCollector : MonoBehaviour
 {
@@ -66,35 +67,26 @@ public class EyeDataCollector : MonoBehaviour
         Vector3 leftEyeOrigin = Vector3.zero, rightEyeOrigin = Vector3.zero;
         Vector3 combinedEyeOrigin = Vector3.zero, combinedEyeDirection = Vector3.forward;
 
-        bool leftEyeAvailable = EyeManager.Instance.GetLeftEyeOrigin(out leftEyeOrigin);
-        bool rightEyeAvailable = EyeManager.Instance.GetRightEyeOrigin(out rightEyeOrigin);
-        bool combinedEyeAvailable = EyeManager.Instance.GetCombinedEyeOrigin(out combinedEyeOrigin) &&
-                                    EyeManager.Instance.GetCombindedEyeDirectionNormalized(out combinedEyeDirection);
-
-        if (leftEyeAvailable && rightEyeAvailable && combinedEyeAvailable)
+        
+        if (VergenceFunctions.TryGetInterpupillaryDistance(out float interpupillaryDistance))
         {
-            Transform head = Camera.main.transform;
-
-            Vector3 leftTransformed = head.TransformPoint(leftEyeOrigin);
-            Vector3 rightTransformed = head.TransformPoint(rightEyeOrigin);
-            Vector3 combinedTransformed = head.TransformPoint(combinedEyeOrigin);
-            Vector3 combinedDirection = head.TransformDirection(combinedEyeDirection);
-
-            float PD = Vector3.Distance(leftTransformed, rightTransformed);
-
-            RaycastHit hit;
-            if (Physics.Raycast(combinedTransformed, combinedDirection, out hit, Mathf.Infinity))
+            if (VergenceFunctions.TryGetCombinedEyeRay(out Ray ray))
             {
-                float distance = Vector3.Distance(combinedTransformed, hit.point);
-                float vergence = CalculateVergenceAngle(PD, distance);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+                {
+                    float distance = Vector3.Distance(ray.origin, hit.point);
+                    float vergence = VergenceFunctions.CalculateVergenceAngle(interpupillaryDistance, distance);
 
-                string objectName = hit.collider.gameObject.name;
+                    string objectName = hit.collider.gameObject.name;
 
-                logQueue.Enqueue(new EyeLogEntry(objectName, distance, vergence));
-                _ = Task.Run(async () => await SaveLogAsync());
+                    logQueue.Enqueue(new EyeLogEntry(objectName, distance, vergence));
+                    _ = Task.Run(async () => await SaveLogAsync());
+                }
             }
         }
     }
+
 
     async Task SaveLogAsync()
     {

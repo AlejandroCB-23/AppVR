@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.alex.ocularvergence": {
+      "version": "file:C:/Users/alexc/OneDrive/Escritorio/MyApp/Libreria-AppVR",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.htc.upm.wave.essence": {
       "version": "https://github.com/ViveSoftware/VIVE-Wave.git?path=com.htc.upm.wave.essence",
       "depth": 0,
