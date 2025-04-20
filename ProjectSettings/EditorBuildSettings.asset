@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/ModoTest.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects:
-    com.htc.upm.wave.xrsdk.xrsettings: {fileID: 11400000, guid: a98bd39953574d04db3587d0ccffe141, type: 2}
+    com.htc.upm.wave.xrsdk.xrsettings: {fileID: 11400000, guid: c778aeaa1cd0cb344a449c02c992ab43, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: cdbdd7278fdc8504fb7a4fab0d8db030, type: 3}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: debbb6687016a9646b8fd5a7b560beda, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 75d1c879b2a65894bb53d2275e04c30d, type: 2}
