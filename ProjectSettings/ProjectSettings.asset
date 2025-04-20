@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Prueba
+  productName: AppVR
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -163,7 +163,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.DefaultCompany.Prueba
+    Android: com.DefaultCompany.AppVR
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -857,7 +857,13 @@ PlayerSettings:
   windowsGamepadBackendHint: 0
   cloudProjectId: c4ca9eef-b383-458d-a44e-e65ec78ef8b1
   framebufferDepthMemorylessMode: 0
-  qualitySettingsNames: []
+  qualitySettingsNames:
+  - Very Low
+  - Low
+  - Medium
+  - High
+  - Very High
+  - Ultra
   projectName: Prueba 2025-03-29_11-59-32
   organizationId: alexcb23
   cloudEnabled: 0

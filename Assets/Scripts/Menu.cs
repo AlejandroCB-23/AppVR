@@ -9,55 +9,74 @@ namespace menu
 
     public class GazeMenuVive : MonoBehaviour
     {
+        [Header("Referencias de los menús")]
+        public GameObject MainMenu;
+        public GameObject SelectMode;
+
         [Header("Referencias de los 'botones'")]
-        private GameObject modoTestObject;
-        private GameObject modoAleatorioObject;
-        private GameObject salirObject;
+        public GameObject TestMode;
+        public GameObject RandomMode;
+        public GameObject Exit;
+
+        public GameObject OnlyView;
+        public GameObject OnlyController;
+        public GameObject Both;
+        public GameObject Back;
 
         [Header("Distancia de interacción")]
         public float maxDistance = Mathf.Infinity;
 
         [Header("Configuración de input")]
-        public Controls controls;  
+        public Controls controls;
         private InputAction fireAction;
 
         private GameObject currentLookedObject = null;
         private Color originalColor;
         private Material currentMat;
-
         private string botonesLayerName = "Botones";
 
         [Header("Prefab de la bola de cañón y Transform del cañón")]
         public GameObject cannonballPrefab;
         public Transform cannonTransform;
-        public float forceMultiplier = 500f; // Ajustar fuerza
+        public float forceMultiplier = 500f;
 
-        private Vector3 gazeTargetPoint; //Punto donde ira la bala
+        private Vector3 gazeTargetPoint;
+
+        // Objetos de menú
+        private GameObject modoTestObject, modoAleatorioObject, salirObject;
+        private GameObject onlyViewObject, onlyControllerObject, bothObject, backObject;
 
         void Start()
         {
-            modoTestObject = GameObject.Find("ModoTest");
-            modoAleatorioObject = GameObject.Find("ModoAleatorio");
-            salirObject = GameObject.Find("Salir");
+            MainMenu.SetActive(true);
+            SelectMode.SetActive(false);
 
-            if (modoTestObject == null || modoAleatorioObject == null || salirObject == null)
-            {
-                Debug.LogError("No se han encontrado todos los objetos");
-            }
+            modoTestObject = TestMode;
+            modoAleatorioObject = RandomMode;
+            salirObject = Exit;
+            onlyViewObject = OnlyView;
+            onlyControllerObject = OnlyController;
+            bothObject = Both;
+            backObject = Back;
         }
+
+        // --- INPUT SUBSCRIPTION CHANGES ---
+        private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
         void OnEnable()
         {
             controls = new Controls();
             fireAction = controls.PlayerControls.Fire;
             fireAction.Enable();
-            fireAction.performed += _ => OnTriggerPressed();
+            fireAction.performed += OnFire;
         }
 
         void OnDisable()
         {
+            fireAction.performed -= OnFire;
             fireAction.Disable();
         }
+        // ---------------------------------
 
         void Update()
         {
@@ -70,7 +89,6 @@ namespace menu
             {
                 Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
                 Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-
                 Ray ray = new Ray(worldOrigin, worldDirection);
                 RaycastHit hit;
 
@@ -79,7 +97,7 @@ namespace menu
                 if (Physics.Raycast(ray, out hit, maxDistance, mask))
                 {
                     GameObject lookedObject = hit.collider.gameObject;
-                    gazeTargetPoint = hit.point; // Punto donde se mira
+                    gazeTargetPoint = hit.point;
 
                     if (lookedObject != currentLookedObject)
                     {
@@ -89,7 +107,7 @@ namespace menu
                 }
                 else if (currentLookedObject != null)
                 {
-                    ResetPreviousLook(); 
+                    ResetPreviousLook();
                 }
             }
         }
@@ -102,7 +120,7 @@ namespace menu
             {
                 currentMat = renderer.material;
                 originalColor = currentMat.color;
-                currentMat.color = new Color(1f, 0.6f, 0f);  
+                currentMat.color = new Color(1f, 0.6f, 0f);
                 obj.transform.localScale *= 1.1f;
             }
         }
@@ -126,18 +144,11 @@ namespace menu
             if (currentLookedObject == null) return;
 
             GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
+            Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
 
-            Rigidbody rb = cannonball.GetComponent<Rigidbody>();
-            if (rb == null)
-            {
-                rb = cannonball.AddComponent<Rigidbody>();
-            }
-
-            // Disparo al punto que miro
             Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
             float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
             float adjustedForce = distance * forceMultiplier;
-
             rb.AddForce(direction * adjustedForce);
 
             Cannonball cannonballScript = cannonball.AddComponent<Cannonball>();
@@ -147,9 +158,12 @@ namespace menu
 
         public void ExecuteButtonAction(GameObject button)
         {
+            FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+
             if (button == modoTestObject)
             {
-                SceneManager.LoadScene("Game");
+                MainMenu.SetActive(false);
+                SelectMode.SetActive(true);
             }
             else if (button == modoAleatorioObject)
             {
@@ -159,12 +173,36 @@ namespace menu
             {
                 Application.Quit();
             }
+            else if (button == onlyViewObject)
+            {
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+            }
+            else if (button == onlyControllerObject)
+            {
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+            }
+            else if (button == bothObject)
+            {
+                GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
+                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+            }
+            else if (button == backObject)
+            {
+                SelectMode.SetActive(false);
+                MainMenu.SetActive(true);
+            }
         }
     }
+
 }
 
-
 #endif
+
+
+
+
 
 
 
