@@ -98,7 +98,6 @@ namespace menu
             }
         }
 
-
         void HighlightObject(GameObject obj)
         {
             currentLookedObject = obj;
@@ -184,7 +183,6 @@ namespace menu
     }
 
 }
-
 #endif
 
 

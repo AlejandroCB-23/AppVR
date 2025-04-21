@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -112,7 +113,6 @@ public class StatsTracker : MonoBehaviour
         gameStartTime = Time.timeSinceLevelLoad;
     }
 }
-
 #endif
 
 

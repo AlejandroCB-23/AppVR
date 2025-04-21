@@ -58,7 +58,6 @@ public class GazeShipDetector : MonoBehaviour
         if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
             return;
 
-        // Usamos la librería para obtener el ray combinado de los ojos
         if (VergenceFunctions.TryRaycastHit(out RaycastHit hit, maxDistance, LayerMask.GetMask(botonesLayerName)))
         {
             GameObject lookedObject = hit.collider.gameObject;
@@ -73,7 +72,7 @@ public class GazeShipDetector : MonoBehaviour
             return;
         }
 
-        // Si no se ha detectado un objeto de botón, hacemos el raycast para detectar el barco
+        
         if (VergenceFunctions.TryRaycastHit(out hit, maxDistance))
         {
             Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
@@ -177,7 +176,6 @@ public class GazeShipDetector : MonoBehaviour
             cannonballScript.targetShip = target;
     }
 }
-
 #endif
 
 

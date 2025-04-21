@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
 
 public class Ship : MonoBehaviour
@@ -70,7 +71,6 @@ public class Ship : MonoBehaviour
         return isSinking;
     }
 }
-
 #endif
 
 

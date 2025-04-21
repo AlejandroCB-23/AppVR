@@ -16,7 +16,6 @@ public class ShipSpawnEvent
         speed = spd;
     }
 }
-
 #endif
 
 

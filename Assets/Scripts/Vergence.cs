@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using System.Collections.Generic;
 using System.IO;
 using System;
@@ -87,7 +88,6 @@ public class EyeDataCollector : MonoBehaviour
         }
     }
 
-
     async Task SaveLogAsync()
     {
         List<EyeLogEntry> logsToSave = new List<EyeLogEntry>(logQueue);
@@ -147,12 +147,6 @@ public class EyeDataCollector : MonoBehaviour
         {
             Debug.LogError("Error saving final stats: " + e.Message);
         }
-    }
-
-    float CalculateVergenceAngle(float interpupillaryDistance, float distanceToObject)
-    {
-        if (distanceToObject == 0f) return 0f;
-        return Mathf.Rad2Deg * 2f * Mathf.Atan((interpupillaryDistance / 2f) / distanceToObject);
     }
 
     void RequestStoragePermissions()

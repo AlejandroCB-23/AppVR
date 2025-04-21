@@ -1,6 +1,6 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro; 
 
 public class StatsUIManager : MonoBehaviour
@@ -32,5 +32,4 @@ public class StatsUIManager : MonoBehaviour
         return $"{minutes}:{secs:D2}";
     }
 }
-
 #endif

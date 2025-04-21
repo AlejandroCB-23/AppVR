@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -86,9 +87,6 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
-
-
 }
 #endif
 
