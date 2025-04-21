@@ -1,6 +1,6 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
-using System.Collections;
 
 public class Ship : MonoBehaviour
 {
@@ -71,7 +71,6 @@ public class Ship : MonoBehaviour
         return isSinking;
     }
 }
-
 #endif
 
 

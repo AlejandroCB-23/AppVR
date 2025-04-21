@@ -6,14 +6,15 @@ namespace menu
     using UnityEngine.SceneManagement;
     using UnityEngine.InputSystem;
     using Wave.Essence.Eye;
+    using Alex.OcularVergenceLibrary;
 
     public class GazeMenuVive : MonoBehaviour
     {
-        [Header("Referencias de los menús")]
+        [Header("Menu references")]
         public GameObject MainMenu;
         public GameObject SelectMode;
 
-        [Header("Referencias de los 'botones'")]
+        [Header("Button References")]
         public GameObject TestMode;
         public GameObject RandomMode;
         public GameObject Exit;
@@ -23,10 +24,10 @@ namespace menu
         public GameObject Both;
         public GameObject Back;
 
-        [Header("Distancia de interacción")]
+        [Header("Interaction distance")]
         public float maxDistance = Mathf.Infinity;
 
-        [Header("Configuración de input")]
+        [Header("\r\nInput configuration")]
         public Controls controls;
         private InputAction fireAction;
 
@@ -35,14 +36,13 @@ namespace menu
         private Material currentMat;
         private string botonesLayerName = "Botones";
 
-        [Header("Prefab de la bola de cañón y Transform del cañón")]
+        [Header("Cannonball Prefab and Cannon Transform")]
         public GameObject cannonballPrefab;
         public Transform cannonTransform;
         public float forceMultiplier = 500f;
 
         private Vector3 gazeTargetPoint;
 
-        // Objetos de menú
         private GameObject modoTestObject, modoAleatorioObject, salirObject;
         private GameObject onlyViewObject, onlyControllerObject, bothObject, backObject;
 
@@ -60,7 +60,6 @@ namespace menu
             backObject = Back;
         }
 
-        // --- INPUT SUBSCRIPTION CHANGES ---
         private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
         void OnEnable()
@@ -76,39 +75,26 @@ namespace menu
             fireAction.performed -= OnFire;
             fireAction.Disable();
         }
-        // ---------------------------------
 
         void Update()
         {
             if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
                 return;
 
-            Vector3 eyeOrigin, eyeDirection;
-            if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
-                EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
+            if (VergenceFunctions.TryRaycastHit(out RaycastHit hit, maxDistance, LayerMask.GetMask(botonesLayerName)))
             {
-                Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
-                Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-                Ray ray = new Ray(worldOrigin, worldDirection);
-                RaycastHit hit;
+                GameObject lookedObject = hit.collider.gameObject;
+                gazeTargetPoint = hit.point;
 
-                int mask = LayerMask.GetMask(botonesLayerName);
-
-                if (Physics.Raycast(ray, out hit, maxDistance, mask))
-                {
-                    GameObject lookedObject = hit.collider.gameObject;
-                    gazeTargetPoint = hit.point;
-
-                    if (lookedObject != currentLookedObject)
-                    {
-                        ResetPreviousLook();
-                        HighlightObject(lookedObject);
-                    }
-                }
-                else if (currentLookedObject != null)
+                if (lookedObject != currentLookedObject)
                 {
                     ResetPreviousLook();
+                    HighlightObject(lookedObject);
                 }
+            }
+            else if (currentLookedObject != null)
+            {
+                ResetPreviousLook();
             }
         }
 
@@ -197,7 +183,6 @@ namespace menu
     }
 
 }
-
 #endif
 
 

@@ -2,7 +2,6 @@
 
 using UnityEngine;
 
-
 public class Cannonball : MonoBehaviour
 {
     [HideInInspector]
@@ -19,7 +18,6 @@ public class Cannonball : MonoBehaviour
         }
     }
 }
-
 #endif
 
 

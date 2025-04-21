@@ -31,7 +31,7 @@ public class CannonballShip : MonoBehaviour
             {
                 await EyeDataCollector.Instance.SaveFinalStatsAsync(); 
             }
-            await Task.Delay(300);
+            await Task.Delay(400);
 
             SceneManager.LoadScene("Menu", LoadSceneMode.Single);
             Destroy(gameObject);

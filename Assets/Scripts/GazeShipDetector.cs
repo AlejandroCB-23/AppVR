@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Wave.Essence.Eye;
+using Alex.OcularVergenceLibrary;
 
 public class GazeShipDetector : MonoBehaviour
 {
@@ -57,65 +58,54 @@ public class GazeShipDetector : MonoBehaviour
         if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
             return;
 
-        Vector3 eyeOrigin, eyeDirection;
-        if (EyeManager.Instance.GetCombinedEyeOrigin(out eyeOrigin) &&
-            EyeManager.Instance.GetCombindedEyeDirectionNormalized(out eyeDirection))
+        if (VergenceFunctions.TryRaycastHit(out RaycastHit hit, maxDistance, LayerMask.GetMask(botonesLayerName)))
         {
-            Vector3 worldOrigin = Camera.main.transform.TransformPoint(eyeOrigin);
-            Vector3 worldDirection = Camera.main.transform.TransformDirection(eyeDirection);
-            Ray ray = new Ray(worldOrigin, worldDirection);
-            RaycastHit hit;
+            GameObject lookedObject = hit.collider.gameObject;
+            gazeTargetPoint = hit.point;
 
-            int buttonMask = LayerMask.GetMask(botonesLayerName);
-
-            if (Physics.Raycast(ray, out hit, maxDistance, buttonMask))
+            if (lookedObject != currentLookedButton)
             {
-                GameObject lookedObject = hit.collider.gameObject;
-                gazeTargetPoint = hit.point;
-
-                if (lookedObject != currentLookedButton)
-                {
-                    ResetPreviousLook();
-                    currentLookedButton = lookedObject;
-                    HighlightButton(currentLookedButton, true);
-                }
-                return;
+                ResetPreviousLook();
+                currentLookedButton = lookedObject;
+                HighlightButton(currentLookedButton, true);
             }
+            return;
+        }
 
-            if (Physics.Raycast(ray, out hit, maxDistance))
+        
+        if (VergenceFunctions.TryRaycastHit(out hit, maxDistance))
+        {
+            Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
+            gazeTargetPoint = hit.point;
+
+            if (lookedShip != null)
             {
-                Ship lookedShip = hit.collider.GetComponentInParent<Ship>();
-                gazeTargetPoint = hit.point;
-
-                if (lookedShip != null)
-                {
-                    if (lookedShip != currentLookedShip)
-                    {
-                        ResetPreviousLook();
-                        currentLookedShip = lookedShip;
-                        currentLookedShip.Highlight(true);
-                        gazeTimer = 0f;
-                    }
-                    else if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyView ||
-                             GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
-                    {
-                        gazeTimer += Time.deltaTime;
-                        if (gazeTimer >= gazeHoldTime)
-                        {
-                            FireCannonball(currentLookedShip);
-                            ResetPreviousLook();
-                        }
-                    }
-                }
-                else
+                if (lookedShip != currentLookedShip)
                 {
                     ResetPreviousLook();
+                    currentLookedShip = lookedShip;
+                    currentLookedShip.Highlight(true);
+                    gazeTimer = 0f;
+                }
+                else if (GameSettings.CurrentShootingMode == GameSettings.DisparoMode.OnlyView ||
+                         GameSettings.CurrentShootingMode == GameSettings.DisparoMode.Both)
+                {
+                    gazeTimer += Time.deltaTime;
+                    if (gazeTimer >= gazeHoldTime)
+                    {
+                        FireCannonball(currentLookedShip);
+                        ResetPreviousLook();
+                    }
                 }
             }
             else
             {
                 ResetPreviousLook();
             }
+        }
+        else
+        {
+            ResetPreviousLook();
         }
     }
 
@@ -186,7 +176,6 @@ public class GazeShipDetector : MonoBehaviour
             cannonballScript.targetShip = target;
     }
 }
-
 #endif
 
 

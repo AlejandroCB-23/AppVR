@@ -1,11 +1,11 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro; 
 
 public class StatsUIManager : MonoBehaviour
 {
-    [Header("Referencias a los textos")]
+    [Header("References to the texts")]
     public TMP_Text piratesEliminatedText;
     public TMP_Text fishingVesselsEliminatedText;
     public TMP_Text pirateStreakText;
@@ -32,5 +32,4 @@ public class StatsUIManager : MonoBehaviour
         return $"{minutes}:{secs:D2}";
     }
 }
-
 #endif

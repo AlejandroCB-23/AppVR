@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
 
 public class ShipSink : MonoBehaviour

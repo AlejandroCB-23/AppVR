@@ -1,4 +1,5 @@
 #if WAVE_SDK_IMPORTED
+
 using UnityEngine;
 using TMPro;
 
@@ -89,7 +90,6 @@ public class CountdownUI : MonoBehaviour
             counterText.fontSize = originalFontSize;
     }
 }
-
 #endif
 
 
