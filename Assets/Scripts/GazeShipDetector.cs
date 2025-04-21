@@ -22,6 +22,10 @@ public class GazeShipDetector : MonoBehaviour
     private InputAction fireAction;
     private string botonesLayerName = "Botones";
 
+    [Header("Sound")]
+    public AudioSource cannonAudioSource;
+    public AudioClip cannonShotClip;
+
     private void OnFire(InputAction.CallbackContext ctx) => OnTriggerPressed();
 
     void OnEnable()
@@ -157,6 +161,11 @@ public class GazeShipDetector : MonoBehaviour
             float adjustedForce = Mathf.Max(200f, distance * forceMultiplier);
             rb.AddForce(direction * adjustedForce);
 
+            if (cannonAudioSource != null && cannonShotClip != null)
+            {
+                cannonAudioSource.PlayOneShot(cannonShotClip);
+            }
+
             ResetPreviousLook();
         }
     }
@@ -174,7 +183,13 @@ public class GazeShipDetector : MonoBehaviour
         CannonballShip cannonballScript = cannonball.GetComponent<CannonballShip>();
         if (cannonballScript != null)
             cannonballScript.targetShip = target;
+
+        if (cannonAudioSource != null && cannonShotClip != null)
+        {
+            cannonAudioSource.PlayOneShot(cannonShotClip);
+        }
     }
+
 }
 #endif
 

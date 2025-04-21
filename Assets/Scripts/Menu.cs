@@ -36,6 +36,10 @@ namespace menu
         private Material currentMat;
         private string botonesLayerName = "Botones";
 
+        [Header("Audio Clips")]
+        public AudioClip cannonSound;
+        public AudioSource audioSource;
+
         [Header("Cannonball Prefab and Cannon Transform")]
         public GameObject cannonballPrefab;
         public Transform cannonTransform;
@@ -131,6 +135,11 @@ namespace menu
 
             GameObject cannonball = Instantiate(cannonballPrefab, cannonTransform.position, Quaternion.identity);
             Rigidbody rb = cannonball.GetComponent<Rigidbody>() ?? cannonball.AddComponent<Rigidbody>();
+
+            if (audioSource != null && cannonSound != null)
+            {
+                audioSource.PlayOneShot(cannonSound);
+            }
 
             Vector3 direction = (gazeTargetPoint - cannonTransform.position).normalized;
             float distance = Vector3.Distance(cannonTransform.position, gazeTargetPoint);
