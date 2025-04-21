@@ -5,7 +5,7 @@ using TMPro;
 
 public class StatsUIManager : MonoBehaviour
 {
-    [Header("Referencias a los textos")]
+    [Header("References to the texts")]
     public TMP_Text piratesEliminatedText;
     public TMP_Text fishingVesselsEliminatedText;
     public TMP_Text pirateStreakText;

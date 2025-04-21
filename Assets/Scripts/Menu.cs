@@ -10,11 +10,11 @@ namespace menu
 
     public class GazeMenuVive : MonoBehaviour
     {
-        [Header("Referencias de los menús")]
+        [Header("Menu references")]
         public GameObject MainMenu;
         public GameObject SelectMode;
 
-        [Header("Referencias de los 'botones'")]
+        [Header("Button References")]
         public GameObject TestMode;
         public GameObject RandomMode;
         public GameObject Exit;
@@ -24,10 +24,10 @@ namespace menu
         public GameObject Both;
         public GameObject Back;
 
-        [Header("Distancia de interacción")]
+        [Header("Interaction distance")]
         public float maxDistance = Mathf.Infinity;
 
-        [Header("Configuración de input")]
+        [Header("\r\nInput configuration")]
         public Controls controls;
         private InputAction fireAction;
 
@@ -36,7 +36,7 @@ namespace menu
         private Material currentMat;
         private string botonesLayerName = "Botones";
 
-        [Header("Prefab de la bola de cañón y Transform del cañón")]
+        [Header("Cannonball Prefab and Cannon Transform")]
         public GameObject cannonballPrefab;
         public Transform cannonTransform;
         public float forceMultiplier = 500f;
