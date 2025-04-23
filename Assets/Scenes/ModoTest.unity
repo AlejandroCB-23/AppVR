@@ -609,6 +609,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c2035ec69f2691043b9075445ec2bbcf, type: 3}
   m_PrefabInstance: {fileID: 497793197}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &93142617
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 93142618}
+  m_Layer: 0
+  m_Name: MountainLeft (4)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &93142618
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93142617}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000055800236, y: 0.51538455, z: -0.00000002869803, w: -0.85695904}
+  m_LocalPosition: {x: -463.37772, y: 65, z: 218.78612}
+  m_LocalScale: {x: 1, y: 1.5, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 297.954, z: 0}
 --- !u!1 &107581700
 GameObject:
   m_ObjectHideFlags: 0
@@ -8258,3 +8289,4 @@ SceneRoots:
   - {fileID: 385479140}
   - {fileID: 411741882}
   - {fileID: 1226942580}
+  - {fileID: 93142618}
