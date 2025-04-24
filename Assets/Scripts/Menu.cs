@@ -50,6 +50,9 @@ namespace menu
         private GameObject modoTestObject, modoAleatorioObject, salirObject;
         private GameObject onlyViewObject, onlyControllerObject, bothObject, backObject;
 
+        private bool isRandomMode = false;
+
+
         void Start()
         {
             MainMenu.SetActive(true);
@@ -162,7 +165,10 @@ namespace menu
             }
             else if (button == modoAleatorioObject)
             {
-                Debug.Log("Modo aleatorio todavía no implementado.");
+                isRandomMode = true;
+                MainMenu.SetActive(false);
+                SelectMode.SetActive(true);
+
             }
             else if (button == salirObject)
             {
@@ -171,22 +177,23 @@ namespace menu
             else if (button == onlyViewObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
-                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+                SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == onlyControllerObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
-                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+                SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == bothObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
-                SceneManager.LoadScene("ModoTest", LoadSceneMode.Single);
+                SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == backObject)
             {
                 SelectMode.SetActive(false);
                 MainMenu.SetActive(true);
+                isRandomMode = false;
             }
         }
     }
