@@ -5,7 +5,8 @@ using UnityEngine;
 public class GameManagerModoAleatorio : MonoBehaviour
 {
     public GameObject endStatsCanvas;
-    public float delayBeforeShowingStats = 1f;
+    public GameObject gameOverPanel; // Nuevo: Referencia al panel GameOver
+    public float delayBeforeShowingStats = 3f;
 
     [Header("End Bell Sound")]
     public AudioClip bellClip;
@@ -26,11 +27,13 @@ public class GameManagerModoAleatorio : MonoBehaviour
             endStatsCanvas.SetActive(false);
             statsUIManager = endStatsCanvas.GetComponent<StatsUIManager>();
         }
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false); // Ocultamos el panel por defecto
     }
 
     void Update()
     {
-        // Verifica si ya se destruyeron 3 barcos pesqueros en modo aleatorio
         if (gameEnded) return;
 
         if (StatsTracker.Instance.GetFishingEliminatedAleatorio() >= 3)
@@ -44,6 +47,11 @@ public class GameManagerModoAleatorio : MonoBehaviour
         gameEnded = true;
         StatsTracker.Instance.gameOver = true;
 
+        // Mostrar panel GameOver
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(true);
+
+        // Reproducir campana
         if (bellSource != null)
             bellSource.Play();
 
@@ -53,11 +61,15 @@ public class GameManagerModoAleatorio : MonoBehaviour
             Destroy(ship);
         }
 
+        // Después del delay, mostrar estadísticas
         Invoke(nameof(ShowEndStats), delayBeforeShowingStats);
     }
 
     void ShowEndStats()
     {
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false); // Ocultar GameOver panel
+
         if (endStatsCanvas != null)
         {
             endStatsCanvas.SetActive(true);
@@ -74,5 +86,6 @@ public class GameManagerModoAleatorio : MonoBehaviour
     }
 }
 #endif
+
 
 
