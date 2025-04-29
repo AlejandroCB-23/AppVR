@@ -21,6 +21,8 @@ public class StatsTracker : MonoBehaviour
 
     private float gameStartTime;
 
+    private int fishingEliminatedAleatorio = 0;
+
     void Awake()
     {
         Instance = this;
@@ -47,6 +49,8 @@ public class StatsTracker : MonoBehaviour
         else
         {
             fishingEliminated++;
+            fishingEliminatedAleatorio++;
+
 
             if (lastFishingEliminatedTime >= 0f)
             {
@@ -99,6 +103,8 @@ public class StatsTracker : MonoBehaviour
 
         return Mathf.Max(0f, rawMax); 
     }
+
+    public int GetFishingEliminatedAleatorio() => fishingEliminatedAleatorio;
 
     public void ResetAll()
     {
