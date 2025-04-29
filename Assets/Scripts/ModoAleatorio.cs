@@ -13,12 +13,15 @@ public class ModoAleatorio : MonoBehaviour
 
     public GameManagerModoAleatorio gameManager;
 
+    public GameObject[] heartLives; // Arrastra aquí los corazones en el inspector
+
     public float spawnIntervalMin = 2.0f;
     public float spawnIntervalMax = 5.0f;
     private float nextSpawnTime = 0f;
 
     private float timer = 0f;
     private bool gameEnded = false;
+    private int lastEliminatedCount = 0;
 
     void Start()
     {
@@ -40,7 +43,15 @@ public class ModoAleatorio : MonoBehaviour
 
         timer += Time.deltaTime;
 
-        if (StatsTracker.Instance.GetFishingEliminatedAleatorio() >= 3)
+        int eliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
+
+        if (eliminatedCount > lastEliminatedCount)
+        {
+            RemoveHeartLife(eliminatedCount - 1); // 0,1,2
+            lastEliminatedCount = eliminatedCount;
+        }
+
+        if (eliminatedCount >= 3)
         {
             gameEnded = true;
             CancelShipSpawning();
@@ -54,9 +65,16 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
+    void RemoveHeartLife(int index)
+    {
+        if (index >= 0 && index < heartLives.Length)
+        {
+            heartLives[index].SetActive(false);
+        }
+    }
+
     void CancelShipSpawning()
     {
-        // Optional: Any logic when stopping
         Debug.Log("Spawning stopped: 3 fishing ships destroyed.");
     }
 
@@ -71,8 +89,8 @@ public class ModoAleatorio : MonoBehaviour
     void SpawnRandomShip()
     {
         int lane = Random.Range(0, spawnPoints.Length);
-        bool isPirate = Random.value < 0.7f; // 70% pirate, 30% fishing
-        int sizeIndex = Random.Range(0, 3); // Assumes 3 sizes
+        bool isPirate = Random.value < 0.7f;
+        int sizeIndex = Random.Range(0, 3);
 
         Transform spawnPoint = spawnPoints[lane];
         Transform endPoint = endPoints[lane];
@@ -104,7 +122,7 @@ public class ModoAleatorio : MonoBehaviour
         }
 
         Ship shipScript = ship.GetComponent<Ship>();
-        shipScript.Initialize(isPirate, 37f); // Fixed speed
+        shipScript.Initialize(isPirate, 37f);
         shipScript.SetDestination(endPoint.position);
 
         float radius = ship.transform.localScale.x * 0.5f;
@@ -125,6 +143,7 @@ public class ModoAleatorio : MonoBehaviour
     }
 }
 #endif
+
 
 
 
