@@ -11,13 +11,14 @@ public class Ship : MonoBehaviour
     private bool isPirate;
     private float spawnTime;
 
+    public bool isRedShip = false;
     public GameObject indicatorCircle;
 
     public void Initialize(bool pirate, float customSpeed)
     {
         speed = customSpeed;
         isPirate = pirate;
-        spawnTime = Time.timeSinceLevelLoad; 
+        spawnTime = Time.timeSinceLevelLoad;
     }
 
     public void SetDestination(Vector3 dest)
@@ -64,6 +65,11 @@ public class Ship : MonoBehaviour
         {
             StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime);
         }
+
+        if (isRedShip)
+        {
+            FindObjectOfType<ModoAleatorio>()?.RestoreLife();
+        }
     }
 
     public bool IsSinking()
@@ -72,6 +78,7 @@ public class Ship : MonoBehaviour
     }
 }
 #endif
+
 
 
 

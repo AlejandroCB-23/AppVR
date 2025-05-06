@@ -2451,6 +2451,7 @@ MonoBehaviour:
   - {fileID: 5656654166730381985, guid: 9d069e1e7d5a9b749a456e4b2fea3340, type: 3}
   - {fileID: 2734642171347104252, guid: 2fba502437b2fab41b32ec8c8054b82d, type: 3}
   - {fileID: 6178692450375849595, guid: 5930070f8025e8a43a1715aac35dbc76, type: 3}
+  redShipPrefab: {fileID: 2101581885570029875, guid: 8365f6414fade8543a49bfc602ba74fc, type: 3}
   circleIndicatorPrefab: {fileID: 2875427239384993938, guid: b656591151a82d84283f0e2d11f1a516, type: 3}
   gameManager: {fileID: 316080952}
   heartLives:
@@ -2459,6 +2460,7 @@ MonoBehaviour:
   - {fileID: 900393140}
   spawnIntervalMin: 2
   spawnIntervalMax: 5
+  minSpawnDistance: 60
 --- !u!4 &474637643 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4f4343ea3eac9314ab56ca465def9298, type: 3}

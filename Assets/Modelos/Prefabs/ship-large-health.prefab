@@ -67,7 +67,7 @@ PrefabInstance:
     - target: {fileID: -649136622991167490, guid: d0a81b3c267fa9b499f33cb8b735982d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: -6538903991835684241, guid: 5a5d450e60a14474f9a8db11916fd2c0, type: 3}
+      objectReference: {fileID: 7211448773848044386, guid: 255416dd46bdb24418ff96d23cba31d0, type: 3}
     - target: {fileID: 919132149155446097, guid: d0a81b3c267fa9b499f33cb8b735982d, type: 3}
       propertyPath: m_Name
       value: ship-large-health
@@ -75,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 4496413189768569120, guid: d0a81b3c267fa9b499f33cb8b735982d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: -6538903991835684241, guid: 618fd19f326bce741a00aa30b155267d, type: 3}
+      objectReference: {fileID: 7211448773848044386, guid: 255416dd46bdb24418ff96d23cba31d0, type: 3}
     - target: {fileID: 6574771330368568952, guid: d0a81b3c267fa9b499f33cb8b735982d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -110,5 +110,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59e0d6a2a5972274da1cc1a4be63b6d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isRedSailShip: 0
+  isRedShip: 0
   indicatorCircle: {fileID: 0}

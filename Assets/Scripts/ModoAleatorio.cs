@@ -10,20 +10,23 @@ public class ModoAleatorio : MonoBehaviour
     public Transform[] endPoints;
     public GameObject[] pirateShipPrefabs;
     public GameObject[] normalShipPrefabs;
+    public GameObject redShipPrefab; // Prefab del barco rojo
     public GameObject circleIndicatorPrefab;
 
     public GameManagerModoAleatorio gameManager;
+    public GameObject[] heartLives;
 
-    public GameObject[] heartLives; // Arrastra aquí los corazones en el inspector
-
-    public float spawnIntervalMin = 1.0f; // Más rápido
+    public float spawnIntervalMin = 1.0f;
     public float spawnIntervalMax = 2.5f;
-    public float minSpawnDistance = 60f;  // Distancia mínima entre barcos
-    private float nextSpawnTime = 0f;
+    public float minSpawnDistance = 60f;
 
+    private float nextSpawnTime = 0f;
     private float timer = 0f;
     private bool gameEnded = false;
     private int lastEliminatedCount = 0;
+
+    private int shipsSpawnedSinceLastRed = 0;
+    private const int shipsPerRedShip = 5;
 
     private List<GameObject> activeShips = new List<GameObject>();
 
@@ -77,6 +80,29 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
+    public void RestoreLife()
+    {
+        for (int i = heartLives.Length - 1; i >= 0; i--)
+        {
+            if (!heartLives[i].activeSelf)
+            {
+                heartLives[i].SetActive(true);
+                break;
+            }
+        }
+    }
+
+    int GetLostLivesCount()
+    {
+        int lost = 0;
+        foreach (var heart in heartLives)
+        {
+            if (!heart.activeSelf)
+                lost++;
+        }
+        return lost;
+    }
+
     void CancelShipSpawning()
     {
         Debug.Log("Spawning stopped: 3 fishing ships destroyed.");
@@ -106,7 +132,6 @@ public class ModoAleatorio : MonoBehaviour
             Transform spawnPoint = spawnPoints[lane];
             Transform endPoint = endPoints[lane];
 
-            // Evita generar barcos muy cerca unos de otros
             bool tooClose = false;
             foreach (GameObject existing in activeShips)
             {
@@ -120,8 +145,21 @@ public class ModoAleatorio : MonoBehaviour
             if (tooClose)
                 continue;
 
-            GameObject[] prefabArray = isPirate ? pirateShipPrefabs : normalShipPrefabs;
-            GameObject prefab = prefabArray[sizeIndex];
+            GameObject prefab;
+            bool isRed = false;
+
+            if (GetLostLivesCount() > 0 && shipsSpawnedSinceLastRed >= shipsPerRedShip)
+            {
+                prefab = redShipPrefab;
+                isRed = true;
+                shipsSpawnedSinceLastRed = 0;
+            }
+            else
+            {
+                GameObject[] prefabArray = isPirate ? pirateShipPrefabs : normalShipPrefabs;
+                prefab = prefabArray[sizeIndex];
+                shipsSpawnedSinceLastRed++;
+            }
 
             GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
             ship.transform.localScale = new Vector3(12f, 12f, 12f);
@@ -152,6 +190,11 @@ public class ModoAleatorio : MonoBehaviour
             shipScript.Initialize(isPirate, 37f);
             shipScript.SetDestination(endPoint.position);
 
+            if (isRed)
+            {
+                shipScript.isRedShip = true;
+            }
+
             float radius = ship.transform.localScale.x * 0.5f;
 
             GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
@@ -175,6 +218,7 @@ public class ModoAleatorio : MonoBehaviour
     }
 }
 #endif
+
 
 
 
