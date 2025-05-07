@@ -14,14 +14,15 @@ public class EyeDataCollector : MonoBehaviour
     public static EyeDataCollector Instance { get; private set; }
 
     private Queue<EyeLogEntry> logQueue = new Queue<EyeLogEntry>();
-    private string logFilePath;
+    private string eyeLogPath;
+    private string statsPath;
+    private int currentGameNumber;
 
     private float captureInterval = 0.015f;
     private float lastCaptureTime = 0f;
 
     private void Awake()
     {
-        
         if (Instance == null)
         {
             Instance = this;
@@ -36,13 +37,16 @@ public class EyeDataCollector : MonoBehaviour
     {
         RequestStoragePermissions();
         string dataPath = Application.persistentDataPath;
-        logFilePath = Path.Combine(dataPath, "CombinedGameLog.json");
 
         if (!PlayerPrefs.HasKey("GameNumber"))
         {
-            PlayerPrefs.SetInt("GameNumber", 1);  
+            PlayerPrefs.SetInt("GameNumber", 1);
             PlayerPrefs.Save();
         }
+
+        currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
+        eyeLogPath = Path.Combine(dataPath, $"EyeLog_Game{currentGameNumber}.json");
+        statsPath = Path.Combine(dataPath, "Stats.json"); 
 
         if (EyeManager.Instance != null)
         {
@@ -65,10 +69,6 @@ public class EyeDataCollector : MonoBehaviour
 
     void CaptureEyeTrackingData()
     {
-        Vector3 leftEyeOrigin = Vector3.zero, rightEyeOrigin = Vector3.zero;
-        Vector3 combinedEyeOrigin = Vector3.zero, combinedEyeDirection = Vector3.forward;
-
-        
         if (VergenceFunctions.TryGetInterpupillaryDistance(out float interpupillaryDistance))
         {
             if (VergenceFunctions.TryGetCombinedEyeRay(out Ray ray))
@@ -95,8 +95,8 @@ public class EyeDataCollector : MonoBehaviour
 
         foreach (var entry in logsToSave)
         {
-            string jsonLine = JsonUtility.ToJson(entry, true); 
-            await File.AppendAllTextAsync(logFilePath, jsonLine + "\n");
+            string jsonLine = JsonUtility.ToJson(entry, true);
+            await File.AppendAllTextAsync(eyeLogPath, jsonLine + "\n");
         }
     }
 
@@ -104,11 +104,6 @@ public class EyeDataCollector : MonoBehaviour
     {
         try
         {
-            int currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
-
-            string header = $"\n{{\n  \"Game\": {currentGameNumber},\n  \"Stats\": ";
-            await File.AppendAllTextAsync(logFilePath, header);
-
             var stats = StatsTracker.Instance;
             var gameStats = new GameStats
             {
@@ -120,26 +115,25 @@ public class EyeDataCollector : MonoBehaviour
                 avgTimeToSinkPirate = stats.GetAverageTimeToSinkPirate()
             };
 
-            string statsJson = JsonUtility.ToJson(gameStats, true);
-            await File.AppendAllTextAsync(logFilePath, statsJson + ",\n  \"EyeLogs\": [\n");
+            List<GameStats> allStats = new List<GameStats>();
 
-            List<EyeLogEntry> logsToSave = new List<EyeLogEntry>(logQueue);
-            logQueue.Clear();
-
-            for (int i = 0; i < logsToSave.Count; i++)
+            // Leer las estadísticas existentes, si existen, para mantener un único archivo
+            if (File.Exists(statsPath))
             {
-                string logJson = JsonUtility.ToJson(logsToSave[i], true);
-                if (i < logsToSave.Count - 1)
-                    logJson += ",";
-
-                await File.AppendAllTextAsync(logFilePath, logJson + "\n");
+                string existingJson = await File.ReadAllTextAsync(statsPath);
+                allStats = JsonUtilityWrapper.FromJsonArray<GameStats>(existingJson);
             }
 
-            await File.AppendAllTextAsync(logFilePath, "  ]\n}\n");
+            // Agregar la nueva estadística
+            allStats.Add(gameStats);
 
-            int nextGameNumber = currentGameNumber + 1;
-            PlayerPrefs.SetInt("GameNumber", nextGameNumber);
-            PlayerPrefs.Save();  
+            // Convertir la lista a JSON y guardar el archivo
+            string updatedStatsJson = JsonUtilityWrapper.ToJsonArray(allStats, true);
+            await File.WriteAllTextAsync(statsPath, updatedStatsJson);
+
+            currentGameNumber++;
+            PlayerPrefs.SetInt("GameNumber", currentGameNumber);
+            PlayerPrefs.Save();
 
             Debug.Log("Game stats and eye logs saved.");
         }
@@ -191,7 +185,31 @@ public class EyeLogEntry
         vergenceAngle = vergence;
     }
 }
+
+public static class JsonUtilityWrapper
+{
+    [Serializable]
+    private class Wrapper<T>
+    {
+        public List<T> Items;
+    }
+
+    public static string ToJsonArray<T>(List<T> list, bool prettyPrint = false)
+    {
+        Wrapper<T> wrapper = new Wrapper<T> { Items = list };
+        return JsonUtility.ToJson(wrapper, prettyPrint);
+    }
+
+    public static List<T> FromJsonArray<T>(string json)
+    {
+        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+        return wrapper.Items ?? new List<T>();
+    }
+}
+
 #endif
+
+
 
 
 

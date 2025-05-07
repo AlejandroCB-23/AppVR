@@ -99,7 +99,6 @@ public class ModoAleatorio : MonoBehaviour
             }
         }
 
-        // Sincronizar con el contador para evitar errores visuales
         lastEliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
     }
 
