@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameManagerModoAleatorio : MonoBehaviour
 {
     public GameObject endStatsCanvas;
-    public GameObject gameOverPanel; // Nuevo: Referencia al panel GameOver
+    public GameObject gameOverPanel;
     public float delayBeforeShowingStats = 3f;
 
     [Header("End Bell Sound")]
@@ -29,7 +29,7 @@ public class GameManagerModoAleatorio : MonoBehaviour
         }
 
         if (gameOverPanel != null)
-            gameOverPanel.SetActive(false); // Ocultamos el panel por defecto
+            gameOverPanel.SetActive(false);
     }
 
     void Update()
@@ -47,28 +47,24 @@ public class GameManagerModoAleatorio : MonoBehaviour
         gameEnded = true;
         StatsTracker.Instance.gameOver = true;
 
-        // Mostrar panel GameOver
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
 
-        // Reproducir campana
         if (bellSource != null)
             bellSource.Play();
 
-        // Eliminar todos los barcos restantes
         foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
         {
             Destroy(ship);
         }
 
-        // Después del delay, mostrar estadísticas
         Invoke(nameof(ShowEndStats), delayBeforeShowingStats);
     }
 
     void ShowEndStats()
     {
         if (gameOverPanel != null)
-            gameOverPanel.SetActive(false); // Ocultar GameOver panel
+            gameOverPanel.SetActive(false);
 
         if (endStatsCanvas != null)
         {
@@ -86,6 +82,5 @@ public class GameManagerModoAleatorio : MonoBehaviour
     }
 }
 #endif
-
 
 

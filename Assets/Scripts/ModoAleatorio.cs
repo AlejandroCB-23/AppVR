@@ -10,7 +10,7 @@ public class ModoAleatorio : MonoBehaviour
     public Transform[] endPoints;
     public GameObject[] pirateShipPrefabs;
     public GameObject[] normalShipPrefabs;
-    public GameObject redShipPrefab; // Prefab del barco rojo
+    public GameObject redShipPrefab;
     public GameObject circleIndicatorPrefab;
 
     public GameManagerModoAleatorio gameManager;
@@ -54,11 +54,15 @@ public class ModoAleatorio : MonoBehaviour
 
         if (eliminatedCount > lastEliminatedCount)
         {
-            RemoveHeartLife(eliminatedCount - 1);
+            for (int i = 0; i < (eliminatedCount - lastEliminatedCount); i++)
+            {
+                RemoveNextActiveHeartLeftToRight();
+            }
+
             lastEliminatedCount = eliminatedCount;
         }
 
-        if (eliminatedCount >= 3)
+        if (GetLostLivesCount() >= heartLives.Length)
         {
             gameEnded = true;
             CancelShipSpawning();
@@ -72,11 +76,15 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
-    void RemoveHeartLife(int index)
+    void RemoveNextActiveHeartLeftToRight()
     {
-        if (index >= 0 && index < heartLives.Length)
+        for (int i = 0; i < heartLives.Length; i++)
         {
-            heartLives[index].SetActive(false);
+            if (heartLives[i].activeSelf)
+            {
+                heartLives[i].SetActive(false);
+                break;
+            }
         }
     }
 
@@ -90,6 +98,9 @@ public class ModoAleatorio : MonoBehaviour
                 break;
             }
         }
+
+        // Sincronizar con el contador para evitar errores visuales
+        lastEliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
     }
 
     int GetLostLivesCount()
@@ -218,6 +229,10 @@ public class ModoAleatorio : MonoBehaviour
     }
 }
 #endif
+
+
+
+
 
 
 

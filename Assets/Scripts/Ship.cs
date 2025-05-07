@@ -63,12 +63,12 @@ public class Ship : MonoBehaviour
 
         if (StatsTracker.Instance != null)
         {
-            StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime);
+            StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime, isRedShip); // Cambiado para incluir 'isRedShip'
         }
 
         if (isRedShip)
         {
-            FindObjectOfType<ModoAleatorio>()?.RestoreLife();
+            StatsTracker.Instance.RestoreFishingLife(); // Reemplazar la llamada a ModoAleatorio
         }
     }
 
@@ -78,6 +78,10 @@ public class Ship : MonoBehaviour
     }
 }
 #endif
+
+
+
+
 
 
 
