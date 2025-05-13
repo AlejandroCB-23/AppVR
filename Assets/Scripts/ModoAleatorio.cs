@@ -1,6 +1,5 @@
 #if WAVE_SDK_IMPORTED
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,9 +15,9 @@ public class ModoAleatorio : MonoBehaviour
     public GameManagerModoAleatorio gameManager;
     public GameObject[] heartLives;
 
-    public float spawnIntervalMin = 1.0f;
-    public float spawnIntervalMax = 2.5f;
-    public float minSpawnDistance = 60f;
+    public float spawnIntervalMin = 0.2f;
+    public float spawnIntervalMax = 0.4f;
+    public float minSpawnDistance = 40f;
 
     private float nextSpawnTime = 0f;
     private float timer = 0f;
@@ -29,6 +28,16 @@ public class ModoAleatorio : MonoBehaviour
     private const int shipsPerRedShip = 5;
 
     private List<GameObject> activeShips = new List<GameObject>();
+    private Dictionary<int, float> lastSpawnTimePerLane = new Dictionary<int, float>();
+
+    // Dificultad dinámica (velocidad de barcos)
+    private float shipSpeed = 37f;
+    public float speedIncreaseRate = 10f;  // Aumento de velocidad más rápido
+    private float difficultyTimer = 0f;
+
+    // Número de barcos generados
+    private int shipsGeneratedThisCycle = 0;
+    private const int maxShipsInCycle = 20; // Ejemplo: cantidad de barcos generados por ciclo
 
     void Start()
     {
@@ -49,6 +58,7 @@ public class ModoAleatorio : MonoBehaviour
             return;
 
         timer += Time.deltaTime;
+        difficultyTimer += Time.deltaTime;
 
         int eliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
 
@@ -69,10 +79,28 @@ public class ModoAleatorio : MonoBehaviour
             return;
         }
 
-        if (timer >= nextSpawnTime)
+        // Aumentar dificultad progresivamente cada 2 segundos
+        if (difficultyTimer >= 2f)
         {
-            SpawnRandomShip();
-            nextSpawnTime = timer + Random.Range(spawnIntervalMin, spawnIntervalMax);
+            difficultyTimer = 0f;
+            shipSpeed = Mathf.Min(70f, shipSpeed + speedIncreaseRate);  // Aumento más rápido de la velocidad (hasta 70)
+            Debug.Log($"Dificultad aumentada: velocidad de barcos = {shipSpeed}");
+        }
+
+        // Generar barcos con más frecuencia
+        while (timer >= nextSpawnTime && shipsGeneratedThisCycle < maxShipsInCycle)
+        {
+            bool spawned = SpawnRandomShip();
+            if (!spawned) break;
+
+            nextSpawnTime += Random.Range(spawnIntervalMin, spawnIntervalMax);  // Usar el intervalo de spawn más bajo
+            shipsGeneratedThisCycle++;
+        }
+
+        // Cuando se hayan generado todos los barcos de un ciclo, reiniciar
+        if (shipsGeneratedThisCycle >= maxShipsInCycle)
+        {
+            shipsGeneratedThisCycle = 0;
         }
     }
 
@@ -126,9 +154,9 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
-    void SpawnRandomShip()
+    bool SpawnRandomShip()
     {
-        const int maxAttempts = 10;
+        const int maxAttempts = 20;  // Aumentar el número de intentos
         int attempt = 0;
 
         while (attempt < maxAttempts)
@@ -136,25 +164,26 @@ public class ModoAleatorio : MonoBehaviour
             attempt++;
 
             int lane = Random.Range(0, spawnPoints.Length);
-            bool isPirate = Random.value < 0.7f;
-            int sizeIndex = Random.Range(0, 3);
-
             Transform spawnPoint = spawnPoints[lane];
             Transform endPoint = endPoints[lane];
 
-            bool tooClose = false;
-            foreach (GameObject existing in activeShips)
+            if (lastSpawnTimePerLane.TryGetValue(lane, out float lastTime))
             {
-                if (existing != null && Vector3.Distance(existing.transform.position, spawnPoint.position) < minSpawnDistance)
-                {
-                    tooClose = true;
-                    break;
-                }
+                if (Time.time - lastTime < 3f)
+                    continue;
             }
+
+            bool tooClose = activeShips.Exists(existing =>
+                existing != null &&
+                Mathf.Abs(existing.transform.position.z - spawnPoint.position.z) < minSpawnDistance &&
+                Mathf.Abs(existing.transform.position.x - spawnPoint.position.x) < 1f
+            );
 
             if (tooClose)
                 continue;
 
+            bool isPirate = Random.value < 0.7f;
+            int sizeIndex = Random.Range(0, 3);
             GameObject prefab;
             bool isRed = false;
 
@@ -197,7 +226,7 @@ public class ModoAleatorio : MonoBehaviour
             }
 
             Ship shipScript = ship.GetComponent<Ship>();
-            shipScript.Initialize(isPirate, 37f);
+            shipScript.Initialize(isPirate, shipSpeed);
             shipScript.SetDestination(endPoint.position);
 
             if (isRed)
@@ -221,13 +250,22 @@ public class ModoAleatorio : MonoBehaviour
 
             shipScript.indicatorCircle = indicator;
 
-            return;
+            lastSpawnTimePerLane[lane] = Time.time;
+
+            return true;
         }
 
-        Debug.Log("No se pudo generar barco tras varios intentos (por solapamiento).");
+        Debug.Log("No se pudo generar barco tras varios intentos (por solapamiento o cooldown).");
+        return false;
     }
 }
+
 #endif
+
+
+
+
+
 
 
 
