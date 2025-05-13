@@ -1,0 +1,279 @@
+#if WAVE_SDK_IMPORTED
+
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ModoAleatorio : MonoBehaviour
+{
+    public Transform[] spawnPoints;
+    public Transform[] endPoints;
+    public GameObject[] pirateShipPrefabs;
+    public GameObject[] normalShipPrefabs;
+    public GameObject redShipPrefab;
+    public GameObject circleIndicatorPrefab;
+
+    public GameManagerModoAleatorio gameManager;
+    public GameObject[] heartLives;
+
+    public float spawnIntervalMin = 0.2f;
+    public float spawnIntervalMax = 0.4f;
+    public float minSpawnDistance = 40f;
+
+    private float nextSpawnTime = 0f;
+    private float timer = 0f;
+    private bool gameEnded = false;
+    private int lastEliminatedCount = 0;
+
+    private int shipsSpawnedSinceLastRed = 0;
+    private const int shipsPerRedShip = 5;
+
+    private List<GameObject> activeShips = new List<GameObject>();
+    private Dictionary<int, float> lastSpawnTimePerLane = new Dictionary<int, float>();
+
+    // Dificultad dinámica (velocidad de barcos)
+    private float shipSpeed = 37f;
+    public float speedIncreaseRate = 10f;  // Aumento de velocidad más rápido
+    private float difficultyTimer = 0f;
+
+    // Número de barcos generados
+    private int shipsGeneratedThisCycle = 0;
+    private const int maxShipsInCycle = 20; // Ejemplo: cantidad de barcos generados por ciclo
+
+    void Start()
+    {
+        StatsTracker.Instance.ResetAll();
+        FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+
+        nextSpawnTime = Random.Range(spawnIntervalMin, spawnIntervalMax);
+
+        if (gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManagerModoAleatorio>();
+        }
+    }
+
+    void Update()
+    {
+        if (gameEnded)
+            return;
+
+        timer += Time.deltaTime;
+        difficultyTimer += Time.deltaTime;
+
+        int eliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
+
+        if (eliminatedCount > lastEliminatedCount)
+        {
+            for (int i = 0; i < (eliminatedCount - lastEliminatedCount); i++)
+            {
+                RemoveNextActiveHeartLeftToRight();
+            }
+
+            lastEliminatedCount = eliminatedCount;
+        }
+
+        if (GetLostLivesCount() >= heartLives.Length)
+        {
+            gameEnded = true;
+            CancelShipSpawning();
+            return;
+        }
+
+        // Aumentar dificultad progresivamente cada 2 segundos
+        if (difficultyTimer >= 2f)
+        {
+            difficultyTimer = 0f;
+            shipSpeed = Mathf.Min(70f, shipSpeed + speedIncreaseRate);  // Aumento más rápido de la velocidad (hasta 70)
+            Debug.Log($"Dificultad aumentada: velocidad de barcos = {shipSpeed}");
+        }
+
+        // Generar barcos con más frecuencia
+        while (timer >= nextSpawnTime && shipsGeneratedThisCycle < maxShipsInCycle)
+        {
+            bool spawned = SpawnRandomShip();
+            if (!spawned) break;
+
+            nextSpawnTime += Random.Range(spawnIntervalMin, spawnIntervalMax);  // Usar el intervalo de spawn más bajo
+            shipsGeneratedThisCycle++;
+        }
+
+        // Cuando se hayan generado todos los barcos de un ciclo, reiniciar
+        if (shipsGeneratedThisCycle >= maxShipsInCycle)
+        {
+            shipsGeneratedThisCycle = 0;
+        }
+    }
+
+    void RemoveNextActiveHeartLeftToRight()
+    {
+        for (int i = 0; i < heartLives.Length; i++)
+        {
+            if (heartLives[i].activeSelf)
+            {
+                heartLives[i].SetActive(false);
+                break;
+            }
+        }
+    }
+
+    public void RestoreLife()
+    {
+        for (int i = heartLives.Length - 1; i >= 0; i--)
+        {
+            if (!heartLives[i].activeSelf)
+            {
+                heartLives[i].SetActive(true);
+                break;
+            }
+        }
+
+        lastEliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
+    }
+
+    int GetLostLivesCount()
+    {
+        int lost = 0;
+        foreach (var heart in heartLives)
+        {
+            if (!heart.activeSelf)
+                lost++;
+        }
+        return lost;
+    }
+
+    void CancelShipSpawning()
+    {
+        Debug.Log("Spawning stopped: 3 fishing ships destroyed.");
+    }
+
+    public void RemoveAllShips()
+    {
+        foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
+        {
+            Destroy(ship);
+        }
+    }
+
+    bool SpawnRandomShip()
+    {
+        const int maxAttempts = 20;  // Aumentar el número de intentos
+        int attempt = 0;
+
+        while (attempt < maxAttempts)
+        {
+            attempt++;
+
+            int lane = Random.Range(0, spawnPoints.Length);
+            Transform spawnPoint = spawnPoints[lane];
+            Transform endPoint = endPoints[lane];
+
+            if (lastSpawnTimePerLane.TryGetValue(lane, out float lastTime))
+            {
+                if (Time.time - lastTime < 3f)
+                    continue;
+            }
+
+            bool tooClose = activeShips.Exists(existing =>
+                existing != null &&
+                Mathf.Abs(existing.transform.position.z - spawnPoint.position.z) < minSpawnDistance &&
+                Mathf.Abs(existing.transform.position.x - spawnPoint.position.x) < 1f
+            );
+
+            if (tooClose)
+                continue;
+
+            bool isPirate = Random.value < 0.7f;
+            int sizeIndex = Random.Range(0, 3);
+            GameObject prefab;
+            bool isRed = false;
+
+            if (GetLostLivesCount() > 0 && shipsSpawnedSinceLastRed >= shipsPerRedShip)
+            {
+                prefab = redShipPrefab;
+                isRed = true;
+                shipsSpawnedSinceLastRed = 0;
+            }
+            else
+            {
+                GameObject[] prefabArray = isPirate ? pirateShipPrefabs : normalShipPrefabs;
+                prefab = prefabArray[sizeIndex];
+                shipsSpawnedSinceLastRed++;
+            }
+
+            GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+            ship.transform.localScale = new Vector3(12f, 12f, 12f);
+            ship.tag = "Ship";
+            activeShips.Add(ship);
+
+            Renderer rend = ship.GetComponentInChildren<Renderer>();
+            if (rend != null)
+            {
+                Bounds bounds = rend.bounds;
+                float bottomY = bounds.center.y - bounds.extents.y;
+                float heightOffset = spawnPoint.position.y - bottomY;
+                ship.transform.position += new Vector3(0f, heightOffset, 0f);
+
+                BoxCollider boxCollider = ship.GetComponentInChildren<BoxCollider>();
+                if (boxCollider != null)
+                {
+                    boxCollider.center = new Vector3(boxCollider.center.x, boxCollider.center.y - heightOffset, boxCollider.center.z);
+                }
+            }
+
+            if (ship.GetComponentInChildren<Collider>() == null)
+            {
+                ship.GetComponentInChildren<MeshRenderer>().gameObject.AddComponent<BoxCollider>();
+            }
+
+            Ship shipScript = ship.GetComponent<Ship>();
+            shipScript.Initialize(isPirate, shipSpeed);
+            shipScript.SetDestination(endPoint.position);
+
+            if (isRed)
+            {
+                shipScript.isRedShip = true;
+            }
+
+            float radius = ship.transform.localScale.x * 0.5f;
+
+            GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
+            indicator.transform.SetParent(ship.transform);
+
+            float xOffset = 0f;
+            if (lane == 1) xOffset = 3f;
+            else if (lane == 2) xOffset = -3f;
+            else if (lane == 3) xOffset = 5f;
+
+            indicator.transform.localPosition = new Vector3(xOffset, 3f, 0f);
+            indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);
+            indicator.SetActive(false);
+
+            shipScript.indicatorCircle = indicator;
+
+            lastSpawnTimePerLane[lane] = Time.time;
+
+            return true;
+        }
+
+        Debug.Log("No se pudo generar barco tras varios intentos (por solapamiento o cooldown).");
+        return false;
+    }
+}
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

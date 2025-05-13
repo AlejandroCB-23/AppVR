@@ -21,6 +21,8 @@ public class StatsTracker : MonoBehaviour
 
     private float gameStartTime;
 
+    private int fishingEliminatedAleatorio = 0;
+
     void Awake()
     {
         Instance = this;
@@ -28,7 +30,7 @@ public class StatsTracker : MonoBehaviour
         ResetAll();
     }
 
-    public void RegisterShipElimination(bool isPirate, float spawnTime)
+    public void RegisterShipElimination(bool isPirate, float spawnTime, bool isRed = false)
     {
         float currentTime = Time.timeSinceLevelLoad;
 
@@ -44,29 +46,34 @@ public class StatsTracker : MonoBehaviour
             if (sinkTime < shortestPirateSinkTime)
                 shortestPirateSinkTime = sinkTime;
         }
-        else
+        else if (!isRed)
         {
             fishingEliminated++;
+            fishingEliminatedAleatorio++;
 
-            if (lastFishingEliminatedTime >= 0f)
-            {
-                float interval = currentTime - lastFishingEliminatedTime;
-                maxTimeWithoutFishing = Mathf.Max(maxTimeWithoutFishing, interval);
-            }
-            else
-            {
-                float interval = currentTime - gameStartTime;
-                maxTimeWithoutFishing = interval;
-            }
+            float interval = (lastFishingEliminatedTime >= 0f)
+                ? currentTime - lastFishingEliminatedTime
+                : currentTime - gameStartTime;
 
+            maxTimeWithoutFishing = Mathf.Max(maxTimeWithoutFishing, interval);
             lastFishingEliminatedTime = currentTime;
-            currentPirateStreak = 0; 
+            currentPirateStreak = 0;
+        }
+    }
+
+    public void RestoreFishingLife()
+    {
+        if (fishingEliminatedAleatorio > 0)
+        {
+            fishingEliminatedAleatorio--;
+            FindObjectOfType<ModoAleatorio>()?.RestoreLife();
         }
     }
 
     public int GetPiratesEliminated() => piratesEliminated;
     public int GetFishingEliminated() => fishingEliminated;
     public int GetBestPirateStreak() => bestPirateStreak;
+    public int GetFishingEliminatedAleatorio() => fishingEliminatedAleatorio;
 
     public float GetShortestTimeToSinkPirate()
     {
@@ -94,10 +101,10 @@ public class StatsTracker : MonoBehaviour
 
         if (gameOver && lastIntervalIsMax)
         {
-            rawMax -= 3f; 
+            rawMax -= 3f;
         }
 
-        return Mathf.Max(0f, rawMax); 
+        return Mathf.Max(0f, rawMax);
     }
 
     public void ResetAll()
@@ -111,9 +118,12 @@ public class StatsTracker : MonoBehaviour
         pirateSinkTimes.Clear();
         shortestPirateSinkTime = float.MaxValue;
         gameStartTime = Time.timeSinceLevelLoad;
+        fishingEliminatedAleatorio = 0;
     }
 }
 #endif
+
+
 
 
 
