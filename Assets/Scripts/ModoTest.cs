@@ -20,6 +20,9 @@ public class FixedSpawner : MonoBehaviour
 
     private bool gameEnded = false;
 
+    private int shipCounter = 0;
+
+
     void Start()
     {
         StatsTracker.Instance.ResetAll();
@@ -160,6 +163,7 @@ public class FixedSpawner : MonoBehaviour
         GameObject prefab = prefabArray[spawnEvent.sizeIndex];
 
         GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+        ship.name = prefab.name + "_" + (++shipCounter);
 
         ship.transform.localScale = new Vector3(12f, 12f, 12f);
 

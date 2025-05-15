@@ -188,6 +188,8 @@ public class GazeShipDetector : MonoBehaviour
         {
             cannonAudioSource.PlayOneShot(cannonShotClip);
         }
+
+        EyeDataCollector.Instance?.MarkShot();
     }
 
 }
