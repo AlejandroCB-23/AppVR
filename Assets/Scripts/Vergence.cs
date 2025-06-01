@@ -13,24 +13,26 @@ public class EyeDataCollector : MonoBehaviour
 {
     public static EyeDataCollector Instance { get; private set; }
 
-    private Queue<EyeLogEntry> logQueue = new Queue<EyeLogEntry>();
-    private string eyeLogPath;
-    private string statsPath;
-    private int currentGameNumber;
-
     private float captureInterval = 0.015f;
     private float lastCaptureTime = 0f;
 
-    private void Awake()
+    private EyeVergenceEvent currentEvent = null;
+    private List<EyeVergenceEvent> completedEvents = new List<EyeVergenceEvent>();
+
+    private string eyeLogPath;
+    private string statsPath; 
+
+    private int currentGameNumber;
+
+    private float lastSaveTime = 0f;
+    private float saveInterval = 5f; 
+
+    void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
-        {
             Destroy(gameObject);
-        }
     }
 
     void Start()
@@ -45,7 +47,7 @@ public class EyeDataCollector : MonoBehaviour
         }
 
         currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
-        eyeLogPath = Path.Combine(dataPath, $"EyeLog_Game{currentGameNumber}.json");
+        eyeLogPath = Path.Combine(dataPath, $"VergenceEvents_Game{currentGameNumber}.json");
         statsPath = Path.Combine(dataPath, "Stats.json"); 
 
         if (EyeManager.Instance != null)
@@ -65,43 +67,123 @@ public class EyeDataCollector : MonoBehaviour
             lastCaptureTime = Time.time;
             CaptureEyeTrackingData();
         }
+
+        if (Time.time - lastSaveTime > saveInterval)
+        {
+            lastSaveTime = Time.time;
+            _ = SaveEventsAsync();
+        }
     }
 
     void CaptureEyeTrackingData()
     {
-        if (VergenceFunctions.TryGetInterpupillaryDistance(out float interpupillaryDistance))
+        if (!VergenceFunctions.TryGetInterpupillaryDistance(out float interpupillaryDistance))
+            return;
+
+        if (!VergenceFunctions.TryGetCombinedEyeRay(out Ray ray))
+            return;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
         {
-            if (VergenceFunctions.TryGetCombinedEyeRay(out Ray ray))
+            string stimulusName = hit.collider.gameObject.name;
+            string stimulusType = ClassifyStimulus(stimulusName);
+
+            float distance = Vector3.Distance(ray.origin, hit.point);
+            float vergenceAngle = VergenceFunctions.CalculateVergenceAngle(interpupillaryDistance, distance);
+            float currentTime = Time.time;
+
+            if (currentEvent != null && currentEvent.stimulus == stimulusName)
             {
-                RaycastHit hit;
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+                currentEvent.vergenceSamples.Add(new VergenceSample(currentTime, vergenceAngle));
+                currentEvent.endTime = currentTime;
+            }
+            else
+            {
+                if (currentEvent != null)
                 {
-                    float distance = Vector3.Distance(ray.origin, hit.point);
-                    float vergence = VergenceFunctions.CalculateVergenceAngle(interpupillaryDistance, distance);
-
-                    string objectName = hit.collider.gameObject.name;
-
-                    logQueue.Enqueue(new EyeLogEntry(objectName, distance, vergence));
-                    _ = Task.Run(async () => await SaveLogAsync());
+                    completedEvents.Add(currentEvent);
                 }
+
+                currentEvent = new EyeVergenceEvent
+                {
+                    stimulus = stimulusName,
+                    type = stimulusType,
+                    wasShot = false,
+                    startTime = currentTime,
+                    endTime = currentTime,
+                    vergenceSamples = new List<VergenceSample> { new VergenceSample(currentTime, vergenceAngle) }
+                };
+            }
+        }
+        else
+        {
+            if (currentEvent != null)
+            {
+                completedEvents.Add(currentEvent);
+                currentEvent = null;
             }
         }
     }
 
-    async Task SaveLogAsync()
+    private string ClassifyStimulus(string name)
     {
-        List<EyeLogEntry> logsToSave = new List<EyeLogEntry>(logQueue);
-        logQueue.Clear();
+        if (name.StartsWith("ship-pirate-small") || name.StartsWith("ship-pirate-medium") || name.StartsWith("ship-pirate-large"))
+            return "Go";
 
-        foreach (var entry in logsToSave)
+        if (name.StartsWith("ship-small") || name.StartsWith("ship-medium") || name.StartsWith("ship-large"))
+            return "NoGo";
+
+        if (name.StartsWith("Water") || name.StartsWith("ship-large-health"))
+            return "Other";
+
+        return "Unknown";
+    }
+
+    public void MarkShot()
+    {
+        if (currentEvent != null)
         {
-            string jsonLine = JsonUtility.ToJson(entry, true);
-            await File.AppendAllTextAsync(eyeLogPath, jsonLine + "\n");
+            currentEvent.wasShot = true;
+        }
+    }
+
+    public async Task SaveEventsAsync()
+    {
+        try
+        {
+            if (currentEvent != null)
+            {
+                completedEvents.Add(currentEvent);
+                currentEvent = null;
+            }
+
+            if (completedEvents.Count == 0) return;
+
+            List<EyeVergenceEvent> existingEvents = new List<EyeVergenceEvent>();
+            if (File.Exists(eyeLogPath))
+            {
+                string existingJson = await File.ReadAllTextAsync(eyeLogPath);
+                existingEvents = JsonUtilityWrapper.FromJsonArray<EyeVergenceEvent>(existingJson);
+            }
+
+            existingEvents.AddRange(completedEvents);
+            completedEvents.Clear();
+
+            string json = JsonUtilityWrapper.ToJsonArray(existingEvents, true);
+            await File.WriteAllTextAsync(eyeLogPath, json);
+
+            Debug.Log($"Saved {existingEvents.Count} vergence events.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error saving vergence events: " + e.Message);
         }
     }
 
     public async Task SaveFinalStatsAsync()
     {
+        await SaveEventsAsync();
+
         try
         {
             var stats = StatsTracker.Instance;
@@ -117,17 +199,14 @@ public class EyeDataCollector : MonoBehaviour
 
             List<GameStats> allStats = new List<GameStats>();
 
-            // Leer las estadísticas existentes, si existen, para mantener un único archivo
             if (File.Exists(statsPath))
             {
                 string existingJson = await File.ReadAllTextAsync(statsPath);
                 allStats = JsonUtilityWrapper.FromJsonArray<GameStats>(existingJson);
             }
 
-            // Agregar la nueva estadística
             allStats.Add(gameStats);
 
-            // Convertir la lista a JSON y guardar el archivo
             string updatedStatsJson = JsonUtilityWrapper.ToJsonArray(allStats, true);
             await File.WriteAllTextAsync(statsPath, updatedStatsJson);
 
@@ -160,7 +239,31 @@ public class EyeDataCollector : MonoBehaviour
     }
 }
 
-[System.Serializable]
+[Serializable]
+public class EyeVergenceEvent
+{
+    public string stimulus;
+    public string type;
+    public bool wasShot;
+    public float startTime;
+    public float endTime;
+    public List<VergenceSample> vergenceSamples;
+}
+
+[Serializable]
+public class VergenceSample
+{
+    public float time;
+    public float vergence;
+
+    public VergenceSample(float t, float v)
+    {
+        time = t;
+        vergence = v;
+    }
+}
+
+[Serializable]
 public class GameStats
 {
     public int piratesEliminated;
@@ -169,21 +272,6 @@ public class GameStats
     public float maxTimeWithoutFishing;
     public float shortestTimeToSinkPirate;
     public float avgTimeToSinkPirate;
-}
-
-[System.Serializable]
-public class EyeLogEntry
-{
-    public string objectName;
-    public float distanceToObject;
-    public float vergenceAngle;
-
-    public EyeLogEntry(string name, float distance, float vergence)
-    {
-        objectName = name;
-        distanceToObject = distance;
-        vergenceAngle = vergence;
-    }
 }
 
 public static class JsonUtilityWrapper
@@ -202,12 +290,15 @@ public static class JsonUtilityWrapper
 
     public static List<T> FromJsonArray<T>(string json)
     {
+        if (string.IsNullOrEmpty(json)) return new List<T>();
         Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
-        return wrapper.Items ?? new List<T>();
+        return wrapper?.Items ?? new List<T>();
     }
 }
 
 #endif
+
+
 
 
 

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ModoAleatorio : MonoBehaviour
 {
@@ -30,14 +31,16 @@ public class ModoAleatorio : MonoBehaviour
     private List<GameObject> activeShips = new List<GameObject>();
     private Dictionary<int, float> lastSpawnTimePerLane = new Dictionary<int, float>();
 
-    // Dificultad dinámica (velocidad de barcos)
+   
     private float shipSpeed = 37f;
-    public float speedIncreaseRate = 10f;  // Aumento de velocidad más rápido
+    public float speedIncreaseRate = 10f; 
     private float difficultyTimer = 0f;
 
-    // Número de barcos generados
+
     private int shipsGeneratedThisCycle = 0;
-    private const int maxShipsInCycle = 20; // Ejemplo: cantidad de barcos generados por ciclo
+    private const int maxShipsInCycle = 20; 
+
+    private int shipCounter = 0;
 
     void Start()
     {
@@ -79,11 +82,11 @@ public class ModoAleatorio : MonoBehaviour
             return;
         }
 
-        // Aumentar dificultad progresivamente cada 2 segundos
+     
         if (difficultyTimer >= 2f)
         {
             difficultyTimer = 0f;
-            shipSpeed = Mathf.Min(70f, shipSpeed + speedIncreaseRate);  // Aumento más rápido de la velocidad (hasta 70)
+            shipSpeed = Mathf.Min(70f, shipSpeed + speedIncreaseRate); 
             Debug.Log($"Dificultad aumentada: velocidad de barcos = {shipSpeed}");
         }
 
@@ -93,11 +96,11 @@ public class ModoAleatorio : MonoBehaviour
             bool spawned = SpawnRandomShip();
             if (!spawned) break;
 
-            nextSpawnTime += Random.Range(spawnIntervalMin, spawnIntervalMax);  // Usar el intervalo de spawn más bajo
+            nextSpawnTime += Random.Range(spawnIntervalMin, spawnIntervalMax);  
             shipsGeneratedThisCycle++;
         }
 
-        // Cuando se hayan generado todos los barcos de un ciclo, reiniciar
+    
         if (shipsGeneratedThisCycle >= maxShipsInCycle)
         {
             shipsGeneratedThisCycle = 0;
@@ -156,7 +159,7 @@ public class ModoAleatorio : MonoBehaviour
 
     bool SpawnRandomShip()
     {
-        const int maxAttempts = 20;  // Aumentar el número de intentos
+        const int maxAttempts = 20; 
         int attempt = 0;
 
         while (attempt < maxAttempts)
@@ -203,6 +206,9 @@ public class ModoAleatorio : MonoBehaviour
             GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
             ship.transform.localScale = new Vector3(12f, 12f, 12f);
             ship.tag = "Ship";
+
+            shipCounter++;
+            ship.name = prefab.name + "_" + shipCounter;
             activeShips.Add(ship);
 
             Renderer rend = ship.GetComponentInChildren<Renderer>();
