@@ -2460,8 +2460,10 @@ MonoBehaviour:
   - {fileID: 900393140}
   spawnIntervalMin: 2
   spawnIntervalMax: 5
-  minSpawnDistance: 60
   speedIncreaseRate: 10
+  baseMinDistance: 45
+  sinkingExtraDistance: 15
+  speedDistanceMultiplier: 1.2
 --- !u!4 &474637643 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4f4343ea3eac9314ab56ca465def9298, type: 3}
@@ -3943,7 +3945,7 @@ MonoBehaviour:
   cannonballPrefab: {fileID: 7375158338166288820, guid: e717702126a756e47a68f73c9acd8ba7, type: 3}
   cannonTransform: {fileID: 385479140}
   forceMultiplier: 500
-  gazeHoldTime: 2
+  gazeHoldTime: 1
   cannonAudioSource: {fileID: 782628381}
   cannonShotClip: {fileID: 8300000, guid: b4c2a74810aa5d145a7dd45614fda2a0, type: 3}
 --- !u!114 &782628379

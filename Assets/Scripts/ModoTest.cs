@@ -10,18 +10,15 @@ public class FixedSpawner : MonoBehaviour
     public Transform[] endPoints;
     public GameObject[] pirateShipPrefabs;
     public GameObject[] normalShipPrefabs;
-    public GameObject circleIndicatorPrefab; 
+    public GameObject circleIndicatorPrefab;
 
     private List<ShipSpawnEvent> schedule = new List<ShipSpawnEvent>();
     private float timer = 0f;
     private int nextEventIndex = 0;
 
     public GameManager gameManager;
-
     private bool gameEnded = false;
-
     private int shipCounter = 0;
-
 
     void Start()
     {
@@ -29,95 +26,13 @@ public class FixedSpawner : MonoBehaviour
         FindObjectOfType<GazeShipDetector>()?.ResetDetector();
 
         schedule.Clear();
-
-        // First Minute (0-60s)
-        schedule.Add(new ShipSpawnEvent(0.0f, 0, true, 0, 37f));   // Pirate
-        schedule.Add(new ShipSpawnEvent(2.5f, 1, true, 1, 37f));   // Pirate
-        schedule.Add(new ShipSpawnEvent(4.8f, 2, false, 2, 37f));  // Fishing
-        schedule.Add(new ShipSpawnEvent(7.2f, 0, true, 1, 37f));   // Pirate
-        schedule.Add(new ShipSpawnEvent(9.6f, 1, false, 0, 37f));  // Fishing
-        schedule.Add(new ShipSpawnEvent(12.1f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(14.4f, 0, false, 1, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(16.9f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(19.3f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(21.7f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(24.0f, 1, false, 0, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(26.5f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(28.8f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(31.2f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(33.6f, 2, false, 2, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(36.0f, 0, false, 1, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(38.4f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(40.9f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(43.2f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(45.6f, 1, false, 0, 37f)); // Fishing
-
-        // Second Minute (60-120s)
-        schedule.Add(new ShipSpawnEvent(48.1f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(50.5f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(52.8f, 1, false, 0, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(55.3f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(57.6f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(60.0f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(62.4f, 2, false, 2, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(64.9f, 0, false, 1, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(67.2f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(69.6f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(72.1f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(74.4f, 1, false, 0, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(76.8f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(79.3f, 0, true, 1, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(81.6f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(84.0f, 2, false, 2, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(86.4f, 0, false, 1, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(88.9f, 1, true, 0, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(91.2f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(93.6f, 0, true, 1, 37f));  // Pirate
-
-        // Third Minute (120-180s)
-        schedule.Add(new ShipSpawnEvent(96.1f, 1, false, 0, 37f)); // Fishing
-        schedule.Add(new ShipSpawnEvent(98.5f, 2, true, 2, 37f));  // Pirate
-        schedule.Add(new ShipSpawnEvent(100.8f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(103.2f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(105.6f, 2, false, 2, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(108.0f, 0, false, 1, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(110.4f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(112.9f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(115.2f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(117.6f, 1, false, 0, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(120.0f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(122.4f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(124.8f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(127.3f, 2, false, 2, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(129.6f, 0, false, 1, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(132.0f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(134.4f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(136.9f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(139.2f, 1, false, 0, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(141.6f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(144.0f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(146.4f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(148.8f, 2, false, 2, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(151.3f, 0, false, 1, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(153.6f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(156.0f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(158.4f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(160.9f, 1, false, 0, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(163.2f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(165.6f, 0, true, 1, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(168.0f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(170.4f, 2, false, 2, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(172.8f, 0, false, 1, 37f));// Fishing
-        schedule.Add(new ShipSpawnEvent(175.3f, 1, true, 0, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(177.6f, 2, true, 2, 37f)); // Pirate
-        schedule.Add(new ShipSpawnEvent(180.0f, 0, true, 1, 37f)); // Pirate
+        schedule.AddRange(BuildSchedule());
 
         if (gameManager == null)
         {
             gameManager = FindObjectOfType<GameManager>();
         }
     }
-
 
     void Update()
     {
@@ -130,8 +45,8 @@ public class FixedSpawner : MonoBehaviour
 
         if (gameManager != null && timer >= gameManager.gameDuration)
         {
-            gameEnded = true;  
-            CancelShipSpawning();  
+            gameEnded = true;
+            CancelShipSpawning();
         }
 
         if (nextEventIndex < schedule.Count && timer >= schedule[nextEventIndex].time)
@@ -143,14 +58,14 @@ public class FixedSpawner : MonoBehaviour
 
     void CancelShipSpawning()
     {
-        schedule.Clear();  
+        schedule.Clear();
     }
 
     public void RemoveAllShips()
     {
         foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
         {
-            Destroy(ship);  
+            Destroy(ship);
         }
     }
 
@@ -172,10 +87,8 @@ public class FixedSpawner : MonoBehaviour
         {
             Bounds bounds = rend.bounds;
             float bottomY = bounds.center.y - bounds.extents.y;
-
-            float heightOffset = spawnPoint.position.y - bottomY;  
+            float heightOffset = spawnPoint.position.y - bottomY;
             ship.transform.position += new Vector3(0f, heightOffset, 0f);
-
 
             BoxCollider boxCollider = ship.GetComponentInChildren<BoxCollider>();
             if (boxCollider != null)
@@ -193,39 +106,67 @@ public class FixedSpawner : MonoBehaviour
         shipScript.Initialize(spawnEvent.isPirate, spawnEvent.speed);
         shipScript.SetDestination(endPoint.position);
 
-
-        float radius = GetIndicatorRadius(spawnEvent.sizeIndex, ship);  
-
+        float radius = GetIndicatorRadius(spawnEvent.sizeIndex, ship);
 
         GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
         indicator.transform.SetParent(ship.transform);
 
-        float xOffset = 0f;
-        if (spawnEvent.lane == 1)
-            xOffset = 3f; 
-        else if (spawnEvent.lane == 2)
-            xOffset = -3f; 
-        else if (spawnEvent.lane == 3)
-            xOffset = 5f;
-
+        float xOffset = spawnEvent.lane == 1 ? 3f : spawnEvent.lane == 2 ? -3f : spawnEvent.lane == 3 ? 5f : 0f;
         indicator.transform.localPosition = new Vector3(xOffset, 3f, 0f);
-
-
-        indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);  
-
+        indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);
         indicator.SetActive(false);
+
         shipScript.indicatorCircle = indicator;
     }
 
     float GetIndicatorRadius(int sizeIndex, GameObject ship)
     {
-        float shipSize = ship.transform.localScale.x;  
-        return shipSize * 0.5f;  
+        float shipSize = ship.transform.localScale.x;
+        return shipSize * 0.5f;
     }
 
+    List<ShipSpawnEvent> BuildSchedule()
+    {
+        float defaultSpeed = 37f;
+        int[,] rawScheduleData = new int[,]
+        {
+            // Format: {time*10, lane, isPirate, sizeIndex}
+            {0, 0, 1, 0}, {25, 1, 1, 1}, {48, 2, 0, 2}, {72, 0, 1, 1},
+            {96, 1, 0, 0}, {121, 2, 1, 2}, {144, 0, 0, 1}, {169, 1, 1, 0},
+            {193, 2, 1, 2}, {217, 0, 1, 1}, {240, 1, 0, 0}, {265, 2, 1, 2},
+            {288, 0, 1, 1}, {312, 1, 1, 0}, {336, 2, 0, 2}, {360, 0, 0, 1},
+            {384, 1, 1, 0}, {409, 2, 1, 2}, {432, 0, 1, 1}, {456, 1, 0, 0},
+            {481, 2, 1, 2}, {505, 0, 1, 1}, {528, 1, 0, 0}, {553, 2, 1, 2},
+            {576, 0, 1, 1}, {600, 1, 1, 0}, {624, 2, 0, 2}, {649, 0, 0, 1},
+            {672, 1, 1, 0}, {696, 2, 1, 2}, {721, 0, 1, 1}, {744, 1, 0, 0},
+            {768, 2, 1, 2}, {793, 0, 1, 1}, {816, 1, 1, 0}, {840, 2, 0, 2},
+            {864, 0, 0, 1}, {889, 1, 1, 0}, {912, 2, 1, 2}, {936, 0, 1, 1},
+            {961, 1, 0, 0}, {985, 2, 1, 2}, {1008, 0, 1, 1}, {1032, 1, 1, 0},
+            {1056, 2, 0, 2}, {1080, 0, 0, 1}, {1104, 1, 1, 0}, {1129, 2, 1, 2},
+            {1152, 0, 1, 1}, {1176, 1, 0, 0}, {1200, 2, 1, 2}, {1224, 0, 1, 1},
+            {1248, 1, 1, 0}, {1273, 2, 0, 2}, {1296, 0, 0, 1}, {1320, 1, 1, 0},
+            {1344, 2, 1, 2}, {1369, 0, 1, 1}, {1392, 1, 0, 0}, {1416, 2, 1, 2},
+            {1440, 0, 1, 1}, {1464, 1, 1, 0}, {1488, 2, 0, 2}, {1513, 0, 0, 1},
+            {1536, 1, 1, 0}, {1560, 2, 1, 2}, {1584, 0, 1, 1}, {1609, 1, 0, 0},
+            {1632, 2, 1, 2}, {1656, 0, 1, 1}, {1680, 1, 1, 0}, {1704, 2, 0, 2},
+            {1728, 0, 0, 1}, {1753, 1, 1, 0}, {1776, 2, 1, 2}, {1800, 0, 1, 1}
+        };
 
+        var result = new List<ShipSpawnEvent>();
+        for (int i = 0; i < rawScheduleData.GetLength(0); i++)
+        {
+            float time = rawScheduleData[i, 0] / 10f;
+            int lane = rawScheduleData[i, 1];
+            bool isPirate = rawScheduleData[i, 2] == 1;
+            int sizeIndex = rawScheduleData[i, 3];
+            result.Add(new ShipSpawnEvent(time, lane, isPirate, sizeIndex, defaultSpeed));
+        }
+
+        return result;
+    }
 }
 #endif
+
 
 
 

@@ -52,6 +52,11 @@ public class Ship : MonoBehaviour
         }
     }
 
+    public void UpdateSpeed(float newSpeed)
+    {
+        this.speed = newSpeed; 
+    }
+
     public void Sink()
     {
         isSinking = true;
