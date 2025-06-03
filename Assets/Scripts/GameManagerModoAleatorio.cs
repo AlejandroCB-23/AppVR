@@ -36,7 +36,8 @@ public class GameManagerModoAleatorio : MonoBehaviour
     {
         if (gameEnded) return;
 
-        if (StatsTracker.Instance.GetFishingEliminatedAleatorio() >= 3)
+        ModoAleatorio modo = FindObjectOfType<ModoAleatorio>();
+        if (modo != null && modo.GetLostLivesCount() >= 3)
         {
             EndGame();
         }
