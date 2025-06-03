@@ -31,21 +31,24 @@ public class ModoAleatorio : MonoBehaviour
     private bool gameEnded = false;
     private int lastEliminatedCount = 0;
 
-    private float shipSpeed = 37f;
-    public float speedIncreaseRate = 12f;
+    private float shipSpeed = 32f;
+    public float speedIncreaseRate = 10f;
     private float difficultyTimer = 0f;
 
     private int shipsSpawnedSinceLastRed = 0;
-    private const int shipsPerRedShip = 5;
+    private const int shipsPerRedShip = 12;
 
-    public float baseMinDistance = 45f;
-    public float sinkingExtraDistance = 15f;
-    public float speedDistanceMultiplier = 1.2f;
+    public float baseMinDistance = 50f;
+    public float sinkingExtraDistance = 30f;
+    public float speedDistanceMultiplier = 1.6f;
 
     private float currentMinDistance;
 
     private List<GameObject> activeShips = new List<GameObject>();
     private int shipCounter = 0;
+
+    private float globalSpawnCooldown = 0f;
+    private const float minGlobalSpawnInterval = 0.02f;
 
     void Start()
     {
@@ -65,6 +68,7 @@ public class ModoAleatorio : MonoBehaviour
 
         timer += Time.deltaTime;
         difficultyTimer += Time.deltaTime;
+        globalSpawnCooldown -= Time.deltaTime;
 
         CleanupDestroyedShips();
         CheckEliminatedLives();
@@ -79,22 +83,95 @@ public class ModoAleatorio : MonoBehaviour
         if (difficultyTimer >= 2f)
         {
             difficultyTimer = 0f;
-            shipSpeed = Mathf.Min(70f, shipSpeed + speedIncreaseRate);
-            maxShipsInCycle = Mathf.Min(150, maxShipsInCycle + 5);
-            currentMinDistance = Mathf.Max(baseMinDistance, shipSpeed * speedDistanceMultiplier);
+
+            if (Time.timeSinceLevelLoad < 120f)
+            {
+                float oldSpeed = shipSpeed;
+                shipSpeed = Mathf.Min(85f, shipSpeed + speedIncreaseRate);
+                maxShipsInCycle = Mathf.Min(200, maxShipsInCycle + 10);
+
+                spawnIntervalMin = Mathf.Max(0.03f, spawnIntervalMin - 0.008f);
+                spawnIntervalMax = Mathf.Max(0.08f, spawnIntervalMax - 0.008f);
+
+                UpdateMinDistance();
+
+                if (shipSpeed != oldSpeed)
+                {
+                    UpdateAllActiveShipsSpeed();
+                }
+            }
         }
 
-        while (timer >= nextSpawnTime && shipsGeneratedThisCycle < maxShipsInCycle)
-        {
-            if (!SpawnRandomShip()) break;
+        int shipsToTrySpawn = GetShipsToSpawn();
+        int successfulSpawns = 0;
 
-            nextSpawnTime += Mathf.Lerp(spawnIntervalMin, spawnIntervalMax, Random.value * 0.5f);
-            shipsGeneratedThisCycle++;
+        for (int i = 0; i < shipsToTrySpawn && shipsGeneratedThisCycle < maxShipsInCycle; i++)
+        {
+            if (timer >= nextSpawnTime && globalSpawnCooldown <= 0f)
+            {
+                if (SpawnRandomShip())
+                {
+                    successfulSpawns++;
+                    shipsGeneratedThisCycle++;
+                    globalSpawnCooldown = minGlobalSpawnInterval;
+                }
+                else
+                {
+                    nextSpawnTime = timer + Random.Range(0.05f, 0.15f);
+                }
+            }
+        }
+
+        if (successfulSpawns > 0)
+        {
+            nextSpawnTime = timer + Mathf.Lerp(spawnIntervalMin, spawnIntervalMax, Random.value * 0.2f);
+        }
+        else if (timer >= nextSpawnTime)
+        {
+            nextSpawnTime = timer + spawnIntervalMin * 0.5f;
         }
 
         if (shipsGeneratedThisCycle >= maxShipsInCycle)
         {
             shipsGeneratedThisCycle = 0;
+        }
+    }
+
+    int GetShipsToSpawn()
+    {
+        float timeElapsed = Time.timeSinceLevelLoad;
+        int activeShipCount = activeShips.Count;
+
+        int baseShips = 1;
+        if (timeElapsed > 240f) baseShips = 6;
+        else if (timeElapsed > 180f) baseShips = 5;
+        else if (timeElapsed > 120f) baseShips = 4;
+        else if (timeElapsed > 60f) baseShips = 3;
+        else if (timeElapsed > 30f) baseShips = 2;
+
+        if (activeShipCount < 8) baseShips += 2;
+        else if (activeShipCount < 12) baseShips += 1;
+
+        return Mathf.Min(baseShips, 8);
+    }
+
+    void UpdateMinDistance()
+    {
+        currentMinDistance = Mathf.Max(baseMinDistance, shipSpeed * speedDistanceMultiplier);
+    }
+
+    void UpdateAllActiveShipsSpeed()
+    {
+        foreach (var ship in activeShips)
+        {
+            if (ship != null)
+            {
+                Ship shipScript = ship.GetComponent<Ship>();
+                if (shipScript != null && !shipScript.IsSinking())
+                {
+                    shipScript.UpdateSpeed(shipSpeed);
+                }
+            }
         }
     }
 
@@ -187,9 +264,20 @@ public class ModoAleatorio : MonoBehaviour
                     if (distance < currentMinDistance + sinkingExtraDistance)
                         return false;
                 }
-                else if (distance < currentMinDistance)
+                else
                 {
-                    return false;
+                    float gameTimeMultiplier = Mathf.Max(1f, Time.timeSinceLevelLoad / 30f);
+                    float adjustedMinDistance = currentMinDistance * (1.2f + (1f / gameTimeMultiplier));
+
+                    if (ship.transform.position.z > spawnPosition.z - 25f)
+                    {
+                        adjustedMinDistance *= 1.4f;
+                    }
+
+                    if (distance < adjustedMinDistance)
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -198,19 +286,46 @@ public class ModoAleatorio : MonoBehaviour
 
     bool SpawnRandomShip()
     {
-        const int maxAttempts = 30;
+        const int maxAttempts = 50;
         int attempt = 0;
         List<int> attemptedLanes = new List<int>();
+        List<int> availableLanes = new List<int>();
+
+        for (int i = 0; i < spawnPoints.Length; i++)
+        {
+            if (CanSpawnInLane(i, spawnPoints[i].position))
+            {
+                availableLanes.Add(i);
+            }
+        }
+
+        if (availableLanes.Count == 0)
+        {
+            return false;
+        }
+
+        availableLanes.Sort((a, b) => {
+            float timeA = lastSpawnTimePerLane.ContainsKey(a) ? Time.time - lastSpawnTimePerLane[a] : float.MaxValue;
+            float timeB = lastSpawnTimePerLane.ContainsKey(b) ? Time.time - lastSpawnTimePerLane[b] : float.MaxValue;
+            return timeB.CompareTo(timeA);
+        });
 
         while (attempt < maxAttempts && attemptedLanes.Count < spawnPoints.Length)
         {
             attempt++;
-            int lane = currentLaneIndex;
-            currentLaneIndex = (currentLaneIndex + 1) % spawnPoints.Length;
+
+            int lane;
+            if (availableLanes.Count > 0 && attempt <= availableLanes.Count)
+            {
+                lane = availableLanes[attempt - 1];
+            }
+            else
+            {
+                lane = currentLaneIndex;
+                currentLaneIndex = (currentLaneIndex + 1) % spawnPoints.Length;
+            }
 
             if (attemptedLanes.Contains(lane)) continue;
-            if (pseudoRandom.NextDouble() < 0.3)
-                currentLaneIndex = (currentLaneIndex + 1) % spawnPoints.Length;
 
             Transform spawnPoint = spawnPoints[lane];
             Transform endPoint = endPoints[lane];
@@ -223,7 +338,8 @@ public class ModoAleatorio : MonoBehaviour
 
             if (lastSpawnTimePerLane.TryGetValue(lane, out float lastTime))
             {
-                float minCooldown = currentMinDistance / shipSpeed;
+                float earlyGameMultiplier = Time.timeSinceLevelLoad < 45f ? 1.5f : 1f;
+                float minCooldown = (currentMinDistance / shipSpeed) * 0.7f * earlyGameMultiplier;
                 if ((Time.time - lastTime) < minCooldown)
                 {
                     attemptedLanes.Add(lane);
@@ -236,7 +352,11 @@ public class ModoAleatorio : MonoBehaviour
             GameObject prefab;
             bool isRed = false;
 
-            if (GetLostLivesCount() > 0 && shipsSpawnedSinceLastRed >= shipsPerRedShip)
+            bool shouldSpawnRed = GetLostLivesCount() > 0 &&
+                                 shipsSpawnedSinceLastRed >= shipsPerRedShip &&
+                                 Random.value < 0.7f;
+
+            if (shouldSpawnRed)
             {
                 prefab = redShipPrefab;
                 isRed = true;
@@ -293,16 +413,20 @@ public class ModoAleatorio : MonoBehaviour
             return true;
         }
 
-        if (attempt >= maxAttempts || attemptedLanes.Count >= spawnPoints.Length)
-        {
-            Debug.Log($"No se pudo generar barco - Intentos: {attempt}, Carriles bloqueados: {attemptedLanes.Count}/{spawnPoints.Length}");
-        }
-
         return false;
     }
 }
 
 #endif
+
+
+
+
+
+
+
+
+
 
 
 
