@@ -15,14 +15,11 @@ public class StatsUIManager : MonoBehaviour
     public TMP_Text extraEscapedPirates;
 
     public void UpdateStats(int piratesEliminated, int fishingEliminated, int pirateStreak,
-                            float maxTimeWithoutFishing, float minTimeToSinkPirate, float avgTimeToSinkPirate, float? extraStatEscapedPirates = null)
+                            float maxTimeWithoutFishing, float minTimeToSinkPirate, float avgTimeToSinkPirate, float extraStatEscapedPirates)
     {
         piratesEliminatedText.text = $"Piratas Eliminados: {piratesEliminated}";
         fishingVesselsEliminatedText.text = $"Pesqueros Eliminados: {fishingEliminated}";
-        if (extraEscapedPirates != null && extraStatEscapedPirates.HasValue)
-        {
-            extraEscapedPirates.text = $"Piratas Escapados:{extraStatEscapedPirates}";
-        }
+        extraEscapedPirates.text = $"Piratas Escapados: {extraStatEscapedPirates}";
         pirateStreakText.text = $"Mejor Racha Pirata: {pirateStreak}";
 
         majorTimeDeleteFishingText.text = $"Mayor Tiempo Sin Eliminar Pesquero:\n{FormatTime(maxTimeWithoutFishing)}";
