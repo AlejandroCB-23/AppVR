@@ -36,7 +36,8 @@ public class GameManagerModoAleatorio : MonoBehaviour
     {
         if (gameEnded) return;
 
-        if (StatsTracker.Instance.GetFishingEliminatedAleatorio() >= 3)
+        ModoAleatorio modo = FindObjectOfType<ModoAleatorio>();
+        if (modo != null && modo.GetLostLivesCount() >= 3)
         {
             EndGame();
         }
@@ -76,7 +77,8 @@ public class GameManagerModoAleatorio : MonoBehaviour
                 StatsTracker.Instance.GetBestPirateStreak(),
                 StatsTracker.Instance.GetMaxTimeWithoutFishing(),
                 StatsTracker.Instance.GetShortestTimeToSinkPirate(),
-                StatsTracker.Instance.GetAverageTimeToSinkPirate()
+                StatsTracker.Instance.GetAverageTimeToSinkPirate(),
+                StatsTracker.Instance.GetPiratesEscaped()
             );
         }
     }

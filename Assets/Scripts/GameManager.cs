@@ -111,7 +111,8 @@ public class GameManager : MonoBehaviour
                     StatsTracker.Instance.GetBestPirateStreak(),
                     StatsTracker.Instance.GetMaxTimeWithoutFishing(),
                     StatsTracker.Instance.GetShortestTimeToSinkPirate(),
-                    StatsTracker.Instance.GetAverageTimeToSinkPirate()
+                    StatsTracker.Instance.GetAverageTimeToSinkPirate(),
+                    StatsTracker.Instance.GetPiratesEscaped()
                 );
             }
         }

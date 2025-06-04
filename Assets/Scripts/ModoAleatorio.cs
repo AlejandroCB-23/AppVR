@@ -186,7 +186,7 @@ public class ModoAleatorio : MonoBehaviour
 
     void CheckEliminatedLives()
     {
-        int eliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
+        int eliminatedCount = StatsTracker.Instance.GetTotalLivesLost();
         if (eliminatedCount > lastEliminatedCount)
         {
             for (int i = 0; i < (eliminatedCount - lastEliminatedCount); i++)
@@ -197,7 +197,7 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
-    int GetLostLivesCount()
+    public int GetLostLivesCount()
     {
         int lost = 0;
         foreach (var heart in heartLives)
@@ -230,8 +230,7 @@ public class ModoAleatorio : MonoBehaviour
                 break;
             }
         }
-
-        lastEliminatedCount = StatsTracker.Instance.GetFishingEliminatedAleatorio();
+        lastEliminatedCount = StatsTracker.Instance.GetTotalLivesLost();
     }
 
     void CancelShipSpawning()

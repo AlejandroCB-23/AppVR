@@ -12,12 +12,14 @@ public class StatsUIManager : MonoBehaviour
     public TMP_Text majorTimeDeleteFishingText;
     public TMP_Text shortestTimeSinkPirateText;
     public TMP_Text timeHalfDeletePirateText;
+    public TMP_Text extraEscapedPirates;
 
     public void UpdateStats(int piratesEliminated, int fishingEliminated, int pirateStreak,
-                            float maxTimeWithoutFishing, float minTimeToSinkPirate, float avgTimeToSinkPirate)
+                            float maxTimeWithoutFishing, float minTimeToSinkPirate, float avgTimeToSinkPirate, float extraStatEscapedPirates)
     {
         piratesEliminatedText.text = $"Piratas Eliminados: {piratesEliminated}";
         fishingVesselsEliminatedText.text = $"Pesqueros Eliminados: {fishingEliminated}";
+        extraEscapedPirates.text = $"Piratas Escapados: {extraStatEscapedPirates}";
         pirateStreakText.text = $"Mejor Racha Pirata: {pirateStreak}";
 
         majorTimeDeleteFishingText.text = $"Mayor Tiempo Sin Eliminar Pesquero:\n{FormatTime(maxTimeWithoutFishing)}";

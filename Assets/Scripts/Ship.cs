@@ -1,5 +1,4 @@
 #if WAVE_SDK_IMPORTED
-
 using UnityEngine;
 
 public class Ship : MonoBehaviour
@@ -7,10 +6,8 @@ public class Ship : MonoBehaviour
     private float speed;
     private Vector3 destination;
     private bool isSinking = false;
-
     private bool isPirate;
     private float spawnTime;
-
     public bool isRedShip = false;
     public GameObject indicatorCircle;
 
@@ -48,13 +45,22 @@ public class Ship : MonoBehaviour
         }
         else
         {
+            OnReachDestination();
             Destroy(gameObject);
+        }
+    }
+
+    private void OnReachDestination()
+    {
+        if (isPirate && !isSinking && StatsTracker.Instance != null)
+        {
+            StatsTracker.Instance.RegisterPirateEscape();
         }
     }
 
     public void UpdateSpeed(float newSpeed)
     {
-        this.speed = newSpeed; 
+        this.speed = newSpeed;
     }
 
     public void Sink()
@@ -68,7 +74,7 @@ public class Ship : MonoBehaviour
 
         if (StatsTracker.Instance != null)
         {
-            StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime, isRedShip); 
+            StatsTracker.Instance.RegisterShipElimination(isPirate, spawnTime, isRedShip);
         }
 
         if (isRedShip)
@@ -83,7 +89,6 @@ public class Ship : MonoBehaviour
     }
 }
 #endif
-
 
 
 
