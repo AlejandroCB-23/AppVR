@@ -20,12 +20,8 @@ public class ModoAleatorio : MonoBehaviour
 
     private float nextSpawnTime = 0f;
     private float timer = 0f;
-
     private int shipsGeneratedThisCycle = 0;
     private int maxShipsInCycle = 60;
-
-    private int currentLaneIndex = 0;
-    private System.Random pseudoRandom = new System.Random();
     private Dictionary<int, float> lastSpawnTimePerLane = new Dictionary<int, float>();
 
     private bool gameEnded = false;
@@ -36,7 +32,7 @@ public class ModoAleatorio : MonoBehaviour
     private float difficultyTimer = 0f;
 
     private int shipsSpawnedSinceLastRed = 0;
-    private const int shipsPerRedShip = 12;
+    private const int shipsPerRedShip = 20;
 
     public float baseMinDistance = 50f;
     public float sinkingExtraDistance = 30f;
@@ -70,13 +66,12 @@ public class ModoAleatorio : MonoBehaviour
         difficultyTimer += Time.deltaTime;
         globalSpawnCooldown -= Time.deltaTime;
 
-        CleanupDestroyedShips();
+        CleanDestroyedShips();
         CheckEliminatedLives();
 
         if (GetLostLivesCount() >= heartLives.Length)
         {
             gameEnded = true;
-            CancelShipSpawning();
             return;
         }
 
@@ -175,7 +170,7 @@ public class ModoAleatorio : MonoBehaviour
         }
     }
 
-    void CleanupDestroyedShips()
+    void CleanDestroyedShips()
     {
         for (int i = activeShips.Count - 1; i >= 0; i--)
         {
@@ -233,20 +228,6 @@ public class ModoAleatorio : MonoBehaviour
         lastEliminatedCount = StatsTracker.Instance.GetTotalLivesLost();
     }
 
-    void CancelShipSpawning()
-    {
-        Debug.Log("Spawning stopped: 3 fishing ships destroyed.");
-    }
-
-    public void RemoveAllShips()
-    {
-        foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
-        {
-            Destroy(ship);
-        }
-        activeShips.Clear();
-    }
-
     bool CanSpawnInLane(int laneIndex, Vector3 spawnPosition)
     {
         foreach (var ship in activeShips)
@@ -285,23 +266,36 @@ public class ModoAleatorio : MonoBehaviour
 
     bool SpawnRandomShip()
     {
-        const int maxAttempts = 50;
-        int attempt = 0;
-        List<int> attemptedLanes = new List<int>();
-        List<int> availableLanes = new List<int>();
+        int lane = GetBestAvailableLane();
+        if (lane == -1) return false;
+
+        bool isPirate, isRed;
+        GameObject prefab = ChooseShipPrefab(out isPirate, out isRed);
+        GameObject ship = InstantiateShipInLane(lane, prefab);
+        ConfigureShip(ship, lane, isPirate, isRed); 
+        return true;
+    }
+
+    int GetBestAvailableLane()
+    {
+        List<int> availableLanes = new();
+        Dictionary<int, bool> canSpawnCache = new();
 
         for (int i = 0; i < spawnPoints.Length; i++)
         {
-            if (CanSpawnInLane(i, spawnPoints[i].position))
+            bool canSpawn = CanSpawnInLane(i, spawnPoints[i].position);
+            canSpawnCache[i] = canSpawn;
+            if (canSpawn)
             {
-                availableLanes.Add(i);
+                if (!lastSpawnTimePerLane.TryGetValue(i, out float lastTime) ||
+                    Time.time - lastTime >= GetLaneCooldown())
+                {
+                    availableLanes.Add(i);
+                }
             }
         }
 
-        if (availableLanes.Count == 0)
-        {
-            return false;
-        }
+        if (availableLanes.Count == 0) return -1;
 
         availableLanes.Sort((a, b) => {
             float timeA = lastSpawnTimePerLane.ContainsKey(a) ? Time.time - lastSpawnTimePerLane[a] : float.MaxValue;
@@ -309,111 +303,91 @@ public class ModoAleatorio : MonoBehaviour
             return timeB.CompareTo(timeA);
         });
 
-        while (attempt < maxAttempts && attemptedLanes.Count < spawnPoints.Length)
+        return availableLanes[0];
+    }
+
+    float GetLaneCooldown()
+    {
+        float earlyGameMultiplier = Time.timeSinceLevelLoad < 45f ? 1.5f : 1f;
+        return (currentMinDistance / shipSpeed) * 0.7f * earlyGameMultiplier;
+    }
+
+    GameObject ChooseShipPrefab(out bool isPirate, out bool isRed)
+    {
+        isPirate = Random.value < 0.7f;
+        isRed = false;
+
+        bool shouldSpawnRed = GetLostLivesCount() > 0 &&
+                              shipsSpawnedSinceLastRed >= shipsPerRedShip &&
+                              Random.value < 0.7f;
+
+        if (shouldSpawnRed)
         {
-            attempt++;
-
-            int lane;
-            if (availableLanes.Count > 0 && attempt <= availableLanes.Count)
-            {
-                lane = availableLanes[attempt - 1];
-            }
-            else
-            {
-                lane = currentLaneIndex;
-                currentLaneIndex = (currentLaneIndex + 1) % spawnPoints.Length;
-            }
-
-            if (attemptedLanes.Contains(lane)) continue;
-
-            Transform spawnPoint = spawnPoints[lane];
-            Transform endPoint = endPoints[lane];
-
-            if (!CanSpawnInLane(lane, spawnPoint.position))
-            {
-                attemptedLanes.Add(lane);
-                continue;
-            }
-
-            if (lastSpawnTimePerLane.TryGetValue(lane, out float lastTime))
-            {
-                float earlyGameMultiplier = Time.timeSinceLevelLoad < 45f ? 1.5f : 1f;
-                float minCooldown = (currentMinDistance / shipSpeed) * 0.7f * earlyGameMultiplier;
-                if ((Time.time - lastTime) < minCooldown)
-                {
-                    attemptedLanes.Add(lane);
-                    continue;
-                }
-            }
-
-            bool isPirate = Random.value < 0.7f;
-            int sizeIndex = Random.Range(0, 3);
-            GameObject prefab;
-            bool isRed = false;
-
-            bool shouldSpawnRed = GetLostLivesCount() > 0 &&
-                                 shipsSpawnedSinceLastRed >= shipsPerRedShip &&
-                                 Random.value < 0.7f;
-
-            if (shouldSpawnRed)
-            {
-                prefab = redShipPrefab;
-                isRed = true;
-                shipsSpawnedSinceLastRed = 0;
-            }
-            else
-            {
-                prefab = isPirate ? pirateShipPrefabs[sizeIndex] : normalShipPrefabs[sizeIndex];
-                shipsSpawnedSinceLastRed++;
-            }
-
-            GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
-            ship.transform.localScale = new Vector3(12f, 12f, 12f);
-            ship.tag = "Ship";
-            ship.name = prefab.name + "_" + (++shipCounter);
-            activeShips.Add(ship);
-
-            Renderer rend = ship.GetComponentInChildren<Renderer>();
-            if (rend != null)
-            {
-                float bottomY = rend.bounds.center.y - rend.bounds.extents.y;
-                float heightOffset = spawnPoint.position.y - bottomY;
-                ship.transform.position += new Vector3(0f, heightOffset, 0f);
-
-                BoxCollider boxCollider = ship.GetComponentInChildren<BoxCollider>();
-                if (boxCollider != null)
-                {
-                    boxCollider.center -= new Vector3(0, heightOffset, 0);
-                }
-            }
-
-            if (ship.GetComponentInChildren<Collider>() == null)
-            {
-                ship.GetComponentInChildren<MeshRenderer>().gameObject.AddComponent<BoxCollider>();
-            }
-
-            Ship shipScript = ship.GetComponent<Ship>();
-            shipScript.Initialize(isPirate, shipSpeed);
-            shipScript.SetDestination(endPoint.position);
-            shipScript.isRedShip = isRed;
-
-            GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
-            indicator.transform.SetParent(ship.transform);
-
-            float xOffset = (lane == 1) ? 3f : (lane == 2) ? -3f : (lane == 3) ? 5f : 0f;
-            float radius = ship.transform.localScale.x * 0.5f;
-            indicator.transform.localPosition = new Vector3(xOffset, 3f, 0f);
-            indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);
-            indicator.SetActive(false);
-
-            shipScript.indicatorCircle = indicator;
-            lastSpawnTimePerLane[lane] = Time.time;
-
-            return true;
+            shipsSpawnedSinceLastRed = 0;
+            isRed = true;
+            isPirate = false;
+            return redShipPrefab;
         }
 
-        return false;
+        shipsSpawnedSinceLastRed++;
+
+        int sizeIndex = Random.Range(0, 3);
+        GameObject prefab = isPirate ? pirateShipPrefabs[sizeIndex] : normalShipPrefabs[sizeIndex];
+
+        return prefab;
     }
+
+
+    GameObject InstantiateShipInLane(int lane, GameObject prefab)
+    {
+        Transform spawnPoint = spawnPoints[lane];
+        GameObject ship = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+        ship.transform.localScale = new Vector3(12f, 12f, 12f);
+        ship.tag = "Ship";
+        ship.name = prefab.name + "_" + (++shipCounter);
+
+        Renderer rend = ship.GetComponentInChildren<Renderer>();
+        if (rend != null)
+        {
+            float bottomY = rend.bounds.center.y - rend.bounds.extents.y;
+            float heightOffset = spawnPoint.position.y - bottomY;
+            ship.transform.position += new Vector3(0f, heightOffset, 0f);
+
+            BoxCollider box = ship.GetComponentInChildren<BoxCollider>();
+            if (box != null) box.center -= new Vector3(0, heightOffset, 0);
+        }
+
+        if (ship.GetComponentInChildren<Collider>() == null)
+        {
+            ship.GetComponentInChildren<MeshRenderer>().gameObject.AddComponent<BoxCollider>();
+        }
+
+        activeShips.Add(ship);
+        lastSpawnTimePerLane[lane] = Time.time;
+
+        return ship;
+    }
+
+    void ConfigureShip(GameObject ship, int lane, bool isPirate, bool isRed)
+    {
+        Ship shipScript = ship.GetComponent<Ship>();
+        shipScript.Initialize(isPirate, shipSpeed); 
+        shipScript.SetDestination(endPoints[lane].position);
+        shipScript.isRedShip = isRed;
+
+       
+        GameObject indicator = Instantiate(circleIndicatorPrefab, ship.transform.position, Quaternion.identity);
+        indicator.transform.SetParent(ship.transform);
+
+        float xOffset = (lane == 1) ? 3f : (lane == 2) ? -3f : (lane == 3) ? 5f : 0f;
+        float radius = ship.transform.localScale.x * 0.5f;
+        indicator.transform.localPosition = new Vector3(xOffset, 3f, 0f);
+        indicator.transform.localScale = new Vector3(radius * 1.1f, radius * 2.8f, radius * 2.8f);
+        indicator.SetActive(false);
+
+        shipScript.indicatorCircle = indicator;
+    }
+
 }
 
 #endif

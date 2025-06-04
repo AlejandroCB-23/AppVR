@@ -47,7 +47,7 @@ public class EyeDataCollector : MonoBehaviour
         }
 
         currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
-        eyeLogPath = Path.Combine(dataPath, $"VergenceEvents_Game{currentGameNumber}.json");
+        eyeLogPath = Path.Combine(dataPath, $"EyeData_Game{currentGameNumber}.json");
         statsPath = Path.Combine(dataPath, "Stats.json"); 
 
         if (EyeManager.Instance != null)
@@ -189,6 +189,7 @@ public class EyeDataCollector : MonoBehaviour
             var stats = StatsTracker.Instance;
             var gameStats = new GameStats
             {
+                gameNumber = currentGameNumber,
                 piratesEliminated = stats.GetPiratesEliminated(),
                 fishingEliminated = stats.GetFishingEliminated(),
                 bestPirateStreak = stats.GetBestPirateStreak(),
@@ -269,6 +270,7 @@ public class VergenceSample
 [Serializable]
 public class GameStats
 {
+    public int gameNumber;
     public int piratesEliminated;
     public int fishingEliminated;
     public int bestPirateStreak;
