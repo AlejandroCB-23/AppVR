@@ -194,8 +194,11 @@ public class EyeDataCollector : MonoBehaviour
                 bestPirateStreak = stats.GetBestPirateStreak(),
                 maxTimeWithoutFishing = stats.GetMaxTimeWithoutFishing(),
                 shortestTimeToSinkPirate = stats.GetShortestTimeToSinkPirate(),
-                avgTimeToSinkPirate = stats.GetAverageTimeToSinkPirate()
+                avgTimeToSinkPirate = stats.GetAverageTimeToSinkPirate(),
+                piratesEscaped = stats.GetPiratesEscaped()
             };
+
+
 
             List<GameStats> allStats = new List<GameStats>();
 
@@ -272,6 +275,7 @@ public class GameStats
     public float maxTimeWithoutFishing;
     public float shortestTimeToSinkPirate;
     public float avgTimeToSinkPirate;
+    public int piratesEscaped;
 }
 
 public static class JsonUtilityWrapper
