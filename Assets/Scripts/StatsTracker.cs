@@ -86,20 +86,6 @@ public class StatsTracker : MonoBehaviour
         }
     }
 
-    public int GetPiratesEliminated() => piratesEliminated;
-    public int GetFishingEliminated() => fishingEliminated;
-    public int GetBestPirateStreak() => bestPirateStreak;
-    public int GetFishingEliminatedAleatorio() => fishingEliminatedAleatorio;
-
-    public int GetPiratesEscaped() => piratesEscaped;
-
-    public int GetLivesLostToPirateEscapes() => livesLostToPirateEscapes;
-
-    public float GetShortestTimeToSinkPirate()
-    {
-        return pirateSinkTimes.Count == 0 ? 0f : shortestPirateSinkTime;
-    }
-
     public float GetAverageTimeToSinkPirate()
     {
         if (pirateSinkTimes.Count == 0) return 0f;
@@ -121,6 +107,20 @@ public class StatsTracker : MonoBehaviour
             rawMax -= 3f;
         }
         return Mathf.Max(0f, rawMax);
+    }
+
+    public int GetPiratesEliminated() => piratesEliminated;
+    public int GetFishingEliminated() => fishingEliminated;
+    public int GetBestPirateStreak() => bestPirateStreak;
+    public int GetFishingEliminatedAleatorio() => fishingEliminatedAleatorio;
+
+    public int GetPiratesEscaped() => piratesEscaped;
+
+    public int GetLivesLostToPirateEscapes() => livesLostToPirateEscapes;
+
+    public float GetShortestTimeToSinkPirate()
+    {
+        return pirateSinkTimes.Count == 0 ? 0f : shortestPirateSinkTime;
     }
 
     public void ResetAll()
