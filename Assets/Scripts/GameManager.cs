@@ -2,6 +2,8 @@
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Net.Sockets;
+using System.Text;
 
 public class GameManager : MonoBehaviour
 {
@@ -29,6 +31,9 @@ public class GameManager : MonoBehaviour
 
     private StatsUIManager statsUIManager;
 
+    private UdpClient udpClient;
+    public string externalAppIP = "192.168.110.72"; 
+    public int externalAppPort = 5005;
 
     void Start()
     {
@@ -49,6 +54,9 @@ public class GameManager : MonoBehaviour
 
         if (endStatsCanvas != null)
             statsUIManager = endStatsCanvas.GetComponent<StatsUIManager>();
+
+
+        udpClient = new UdpClient();
     }
 
     void Update()
@@ -61,27 +69,25 @@ public class GameManager : MonoBehaviour
         if (!ticTacStarted && timer <= 30f)
         {
             ticTacStarted = true;
-            ticTacSource.Play();  
+            ticTacSource.Play();
         }
-
 
         if (timer <= 0f)
         {
             timer = 0f;
             gameEnded = true;
 
+            SendExternalMessage("state:end");
+
             if (ticTacSource.isPlaying)
                 ticTacSource.Stop();
 
-
             bellSource.Play();
-
 
             foreach (var ship in GameObject.FindGameObjectsWithTag("Ship"))
             {
                 Destroy(ship);
             }
-
 
             Invoke(nameof(ShowEndStats), delayBeforeShowingStats);
             StatsTracker.Instance.gameOver = true;
@@ -117,8 +123,21 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    void SendExternalMessage(string message)
+    {
+        byte[] data = Encoding.UTF8.GetBytes(message);
+        udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        Debug.Log("Mensaje UDP enviado: " + message);
+    }
+
+    void OnApplicationQuit()
+    {
+        udpClient?.Dispose();
+    }
 }
 #endif
+
 
 
 

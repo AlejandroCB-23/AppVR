@@ -7,6 +7,9 @@ namespace menu
     using UnityEngine.InputSystem;
     using Wave.Essence.Eye;
     using Alex.OcularVergenceLibrary;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Text;
 
     public class GazeMenuVive : MonoBehaviour
     {
@@ -52,6 +55,8 @@ namespace menu
 
         private bool isRandomMode = false;
 
+        private string udpIP = "192.168.110.72";  
+        private int udpPort = 5005;
 
         void Start()
         {
@@ -168,7 +173,6 @@ namespace menu
                 isRandomMode = true;
                 MainMenu.SetActive(false);
                 SelectMode.SetActive(true);
-
             }
             else if (button == salirObject)
             {
@@ -177,16 +181,19 @@ namespace menu
             else if (button == onlyViewObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
+                SendUdpMessage("state:start");
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == onlyControllerObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
+                SendUdpMessage("state:start");
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == bothObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
+                SendUdpMessage("state:start");
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == backObject)
@@ -196,10 +203,27 @@ namespace menu
                 isRandomMode = false;
             }
         }
-    }
 
+        void SendUdpMessage(string message)
+        {
+            using (UdpClient client = new UdpClient())
+            {
+                try
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    client.Send(data, data.Length, udpIP, udpPort);
+                    Debug.Log($"Mensaje UDP enviado: {message}");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Error al enviar UDP: " + e.Message);
+                }
+            }
+        }
+    }
 }
 #endif
+
 
 
 
