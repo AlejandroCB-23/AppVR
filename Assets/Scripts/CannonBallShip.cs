@@ -12,7 +12,6 @@ public class CannonballShip : MonoBehaviour
     {
         GameObject hitObj = collision.gameObject;
         
-        // Ship
         if (hitObj.CompareTag("Ship"))
         {
             Ship ship = hitObj.GetComponent<Ship>();
@@ -24,7 +23,6 @@ public class CannonballShip : MonoBehaviour
             Destroy(gameObject); 
         }
 
-        // Button
         else if (hitObj.CompareTag("Boton"))
         {
             if (EyeDataCollector.Instance != null)

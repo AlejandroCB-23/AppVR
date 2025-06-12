@@ -8,6 +8,8 @@ using UnityEngine;
 using Wave.Essence.Eye;
 using System.Threading.Tasks;
 using Alex.OcularVergenceLibrary;
+using Unity.VisualScripting;
+using System.Text;
 
 public class EyeDataCollector : MonoBehaviour
 {
@@ -20,12 +22,15 @@ public class EyeDataCollector : MonoBehaviour
     private List<EyeVergenceEvent> completedEvents = new List<EyeVergenceEvent>();
 
     private string eyeLogPath;
-    private string statsPath; 
+    private string statsPath;
 
     private int currentGameNumber;
 
     private float lastSaveTime = 0f;
-    private float saveInterval = 5f; 
+    private float saveInterval = 5f;
+
+    private bool isSaving = false;
+    private bool isFirstWrite = true;
 
     void Awake()
     {
@@ -47,13 +52,29 @@ public class EyeDataCollector : MonoBehaviour
         }
 
         currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
-        eyeLogPath = Path.Combine(dataPath, $"VergenceEvents_Game{currentGameNumber}.json");
-        statsPath = Path.Combine(dataPath, "Stats.json"); 
+        eyeLogPath = Path.Combine(dataPath, $"EyeData_Game{currentGameNumber}.json");
+        statsPath = Path.Combine(dataPath, "Stats.json");
+
+        InitializeJsonFile();
 
         if (EyeManager.Instance != null)
         {
             EyeManager.Instance.EnableEyeTracking = true;
             CheckEyeTrackingAvailability();
+        }
+    }
+
+    private void InitializeJsonFile()
+    {
+        if (!File.Exists(eyeLogPath))
+        {
+            File.WriteAllText(eyeLogPath, "{\"Items\":[]}");
+            isFirstWrite = true;
+        }
+        else
+        {
+            string content = File.ReadAllText(eyeLogPath);
+            isFirstWrite = string.IsNullOrEmpty(content) || content.Trim() == "{\"Items\":[]}";
         }
     }
 
@@ -68,10 +89,10 @@ public class EyeDataCollector : MonoBehaviour
             CaptureEyeTrackingData();
         }
 
-        if (Time.time - lastSaveTime > saveInterval)
+        if (Time.time - lastSaveTime > saveInterval && !isSaving)
         {
             lastSaveTime = Time.time;
-            _ = SaveEventsAsync();
+            _ = AppendEventsAsync();
         }
     }
 
@@ -83,7 +104,9 @@ public class EyeDataCollector : MonoBehaviour
         if (!VergenceFunctions.TryGetCombinedEyeRay(out Ray ray))
             return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
+        bool hitCollider = Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity);
+
+        if (hitCollider)
         {
             string stimulusName = hit.collider.gameObject.name;
             string stimulusType = ClassifyStimulus(stimulusName);
@@ -92,17 +115,26 @@ public class EyeDataCollector : MonoBehaviour
             float vergenceAngle = VergenceFunctions.CalculateVergenceAngle(interpupillaryDistance, distance);
             float currentTime = Time.time;
 
+            Vector3 combinedOrigin = Vector3.zero;
+            Vector3 combinedDirection = Vector3.forward;
+            EyeData.TryGetCombinedEyeWorldData(out combinedOrigin, out combinedDirection);
+
+            EyeDataSample eyeDataSample = new EyeDataSample(
+                currentTime,
+                vergenceAngle,
+                distance,
+                combinedOrigin,
+                combinedDirection
+            );
+
             if (currentEvent != null && currentEvent.stimulus == stimulusName)
             {
-                currentEvent.vergenceSamples.Add(new VergenceSample(currentTime, vergenceAngle));
+                currentEvent.eyeDataSamples.Add(eyeDataSample);
                 currentEvent.endTime = currentTime;
             }
             else
             {
-                if (currentEvent != null)
-                {
-                    completedEvents.Add(currentEvent);
-                }
+                FinalizePreviousEvent();
 
                 currentEvent = new EyeVergenceEvent
                 {
@@ -111,17 +143,27 @@ public class EyeDataCollector : MonoBehaviour
                     wasShot = false,
                     startTime = currentTime,
                     endTime = currentTime,
-                    vergenceSamples = new List<VergenceSample> { new VergenceSample(currentTime, vergenceAngle) }
+                    eyeDataSamples = new List<EyeDataSample> { eyeDataSample }
                 };
             }
         }
         else
         {
-            if (currentEvent != null)
+            FinalizePreviousEvent();
+        }
+    }
+
+    private void FinalizePreviousEvent()
+    {
+        if (currentEvent != null)
+        {
+            if (currentEvent.eyeDataSamples != null && currentEvent.eyeDataSamples.Count > 0)
             {
                 completedEvents.Add(currentEvent);
-                currentEvent = null;
+                Debug.Log($"Evento finalizado: {currentEvent.stimulus} con {currentEvent.eyeDataSamples.Count} muestras");
+                _ = AppendEventsAsync();
             }
+            currentEvent = null;
         }
     }
 
@@ -147,48 +189,68 @@ public class EyeDataCollector : MonoBehaviour
         }
     }
 
-    public async Task SaveEventsAsync()
+    public async Task AppendEventsAsync()
     {
+        if (isSaving || completedEvents.Count == 0) return;
+
         try
         {
-            if (currentEvent != null)
+            isSaving = true;
+
+            StringBuilder jsonBuilder = new StringBuilder();
+
+            for (int i = 0; i < completedEvents.Count; i++)
             {
-                completedEvents.Add(currentEvent);
-                currentEvent = null;
+                string eventJson = JsonUtility.ToJson(completedEvents[i]);
+
+                if (!isFirstWrite || i > 0)
+                {
+                    jsonBuilder.Append(",");
+                }
+
+                jsonBuilder.Append(eventJson);
             }
 
-            if (completedEvents.Count == 0) return;
+            await AppendToJsonFileAsync(jsonBuilder.ToString());
 
-            List<EyeVergenceEvent> existingEvents = new List<EyeVergenceEvent>();
-            if (File.Exists(eyeLogPath))
-            {
-                string existingJson = await File.ReadAllTextAsync(eyeLogPath);
-                existingEvents = JsonUtilityWrapper.FromJsonArray<EyeVergenceEvent>(existingJson);
-            }
-
-            existingEvents.AddRange(completedEvents);
+            isFirstWrite = false;
             completedEvents.Clear();
 
-            string json = JsonUtilityWrapper.ToJsonArray(existingEvents, true);
-            await File.WriteAllTextAsync(eyeLogPath, json);
-
-            Debug.Log($"Saved {existingEvents.Count} vergence events.");
+            Debug.Log($"Eventos guardados directamente por append");
         }
         catch (Exception e)
         {
-            Debug.LogError("Error saving vergence events: " + e.Message);
+            Debug.LogError("Error appending vergence events: " + e.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task AppendToJsonFileAsync(string jsonContent)
+    {
+        using (FileStream fs = new FileStream(eyeLogPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            fs.Seek(-2, SeekOrigin.End);
+
+            byte[] contentBytes = Encoding.UTF8.GetBytes(jsonContent + "]}");
+            await fs.WriteAsync(contentBytes, 0, contentBytes.Length);
+            await fs.FlushAsync();
         }
     }
 
     public async Task SaveFinalStatsAsync()
     {
-        await SaveEventsAsync();
+        FinalizePreviousEvent();
+        await AppendEventsAsync();
 
         try
         {
             var stats = StatsTracker.Instance;
             var gameStats = new GameStats
             {
+                gameNumber = currentGameNumber,
                 piratesEliminated = stats.GetPiratesEliminated(),
                 fishingEliminated = stats.GetFishingEliminated(),
                 bestPirateStreak = stats.GetBestPirateStreak(),
@@ -198,30 +260,35 @@ public class EyeDataCollector : MonoBehaviour
                 piratesEscaped = stats.GetPiratesEscaped()
             };
 
-
-
-            List<GameStats> allStats = new List<GameStats>();
-
-            if (File.Exists(statsPath))
-            {
-                string existingJson = await File.ReadAllTextAsync(statsPath);
-                allStats = JsonUtilityWrapper.FromJsonArray<GameStats>(existingJson);
-            }
-
-            allStats.Add(gameStats);
-
-            string updatedStatsJson = JsonUtilityWrapper.ToJsonArray(allStats, true);
-            await File.WriteAllTextAsync(statsPath, updatedStatsJson);
+            await AppendStatsAsync(gameStats);
 
             currentGameNumber++;
             PlayerPrefs.SetInt("GameNumber", currentGameNumber);
             PlayerPrefs.Save();
-
-            Debug.Log("Game stats and eye logs saved.");
         }
         catch (Exception e)
         {
             Debug.LogError("Error saving final stats: " + e.Message);
+        }
+    }
+
+    private async Task AppendStatsAsync(GameStats gameStats)
+    {
+        string statsJson = JsonUtility.ToJson(gameStats);
+
+        if (!File.Exists(statsPath))
+        {
+            File.WriteAllText(statsPath, "{\"Items\":[" + statsJson + "]}");
+        }
+        else
+        {
+            using (FileStream fs = new FileStream(statsPath, FileMode.Open, FileAccess.ReadWrite))
+            {
+                fs.Seek(-2, SeekOrigin.End); 
+                byte[] contentBytes = Encoding.UTF8.GetBytes("," + statsJson + "]}");
+                await fs.WriteAsync(contentBytes, 0, contentBytes.Length);
+                await fs.FlushAsync();
+            }
         }
     }
 
@@ -242,6 +309,36 @@ public class EyeDataCollector : MonoBehaviour
     }
 }
 
+public class SimpleAppendDataCollector : MonoBehaviour
+{
+    private string eyeLogPath;
+
+    void Start()
+    {
+        eyeLogPath = Path.Combine(Application.persistentDataPath, $"EyeData_Simple.txt");
+    }
+
+    public async Task AppendEventSimpleAsync(EyeVergenceEvent evt)
+    {
+        try
+        {
+            string eventLine = JsonUtility.ToJson(evt) + Environment.NewLine;
+
+            // Escribir línea directamente al final del archivo
+            using (StreamWriter writer = new StreamWriter(eyeLogPath, append: true))
+            {
+                await writer.WriteLineAsync(eventLine);
+                await writer.FlushAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error appending event: " + e.Message);
+        }
+    }
+}
+
+
 [Serializable]
 public class EyeVergenceEvent
 {
@@ -250,25 +347,32 @@ public class EyeVergenceEvent
     public bool wasShot;
     public float startTime;
     public float endTime;
-    public List<VergenceSample> vergenceSamples;
+    public List<EyeDataSample> eyeDataSamples;
 }
 
 [Serializable]
-public class VergenceSample
+public class EyeDataSample
 {
     public float time;
     public float vergence;
+    public float distanceToTarget;
+    public Vector3 combinedEyeOrigin;
+    public Vector3 combinedEyeDirection;
 
-    public VergenceSample(float t, float v)
+    public EyeDataSample(float t, float v, float distance, Vector3 origin, Vector3 direction)
     {
         time = t;
         vergence = v;
+        distanceToTarget = distance;
+        combinedEyeOrigin = origin;
+        combinedEyeDirection = direction;
     }
 }
 
 [Serializable]
 public class GameStats
 {
+    public int gameNumber;
     public int piratesEliminated;
     public int fishingEliminated;
     public int bestPirateStreak;
@@ -278,29 +382,8 @@ public class GameStats
     public int piratesEscaped;
 }
 
-public static class JsonUtilityWrapper
-{
-    [Serializable]
-    private class Wrapper<T>
-    {
-        public List<T> Items;
-    }
-
-    public static string ToJsonArray<T>(List<T> list, bool prettyPrint = false)
-    {
-        Wrapper<T> wrapper = new Wrapper<T> { Items = list };
-        return JsonUtility.ToJson(wrapper, prettyPrint);
-    }
-
-    public static List<T> FromJsonArray<T>(string json)
-    {
-        if (string.IsNullOrEmpty(json)) return new List<T>();
-        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
-        return wrapper?.Items ?? new List<T>();
-    }
-}
-
 #endif
+
 
 
 

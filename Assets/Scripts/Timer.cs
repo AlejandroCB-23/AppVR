@@ -66,7 +66,7 @@ public class CountdownUI : MonoBehaviour
 
     void ShowExpiredMessage()
     {
-        counterText.text = "TiEMPO\nAgotado";
+        counterText.text = "Tiempo\nAgotado";
         counterText.color = warningColor;
 
         counterText.alignment = TextAlignmentOptions.Center;
