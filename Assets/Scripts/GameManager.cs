@@ -78,6 +78,7 @@ public class GameManager : MonoBehaviour
             gameEnded = true;
 
             SendExternalMessage("state:end");
+            Data.RecordingState.IsRecording = false;
 
             if (ticTacSource.isPlaying)
                 ticTacSource.Stop();

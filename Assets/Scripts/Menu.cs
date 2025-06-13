@@ -55,7 +55,7 @@ namespace menu
 
         private bool isRandomMode = false;
 
-        private string udpIP = "192.168.110.72";  
+        private string udpIP = "192.168.110.72";
         private int udpPort = 5005;
 
         void Start()
@@ -182,18 +182,21 @@ namespace menu
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
                 SendUdpMessage("state:start");
+                Data.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == onlyControllerObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
                 SendUdpMessage("state:start");
+                Data.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == bothObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
                 SendUdpMessage("state:start");
+                Data.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == backObject)
@@ -222,7 +225,9 @@ namespace menu
         }
     }
 }
+
 #endif
+
 
 
 

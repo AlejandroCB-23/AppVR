@@ -75,6 +75,7 @@ public class GameManagerModoAleatorio : MonoBehaviour
     {
 
         SendExternalMessage("state:end");
+        Data.RecordingState.IsRecording = false;
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
