@@ -9,19 +9,22 @@ using Alex.OcularVergenceLibrary;
 public class Data : MonoBehaviour
 {
     [Header("Network Configuration")]
-    public string serverIP = "192.168.110.72";
+    public string serverIP = "192.168.1.29";
     public int dataPort = 5006;
 
     [Header("Data Collection Settings")]
     public float dataCollectionRate = 30f;
     public Camera targetCamera;
 
+    [Header("Gaze Settings")]
+    public float fallbackGazeDistance = 10f;
+
     private UdpClient udpDataClient;
     private IPEndPoint dataEndPoint;
 
     private float lastDataTime;
     private int frameCounter = 0;
-    private float recordingStartTime = -1f; 
+    private float recordingStartTime = -1f;
 
     void Start()
     {
@@ -37,7 +40,7 @@ public class Data : MonoBehaviour
         {
             udpDataClient = new UdpClient();
             dataEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), dataPort);
-            Debug.Log("Network initialized successfully");
+            Debug.Log($"Network initialized successfully. Target: {serverIP}:{dataPort}");
         }
         catch (System.Exception e)
         {
@@ -115,15 +118,26 @@ public class Data : MonoBehaviour
         Vector3 gazeOrigin = data.hasEyeTracking ? data.combinedEyeOrigin : targetCamera.transform.position;
         Vector3 gazeDirection = data.hasEyeTracking ? data.combinedEyeDirection : targetCamera.transform.forward;
 
-        Ray ray = new Ray(gazeOrigin, gazeDirection);
-        Vector3 fallbackPoint = ray.GetPoint(10f);
+        Vector3 projectedPoint = gazeOrigin + gazeDirection * fallbackGazeDistance;
+        data.gazeWorldPoint = projectedPoint;
 
-        Vector3 screenPoint = targetCamera.WorldToScreenPoint(fallbackPoint);
+        Vector3 screenPoint = targetCamera.WorldToScreenPoint(projectedPoint);
         data.gazeScreenPosition = new Vector2(screenPoint.x, screenPoint.y);
         data.gazeScreenDepth = screenPoint.z;
-        data.gazeNormalizedPosition = new Vector2(screenPoint.x / Screen.width, screenPoint.y / Screen.height);
+
+        float normalizedX = Mathf.Clamp01(screenPoint.x / Screen.width);
+        float normalizedY = Mathf.Clamp01(1.0f - (screenPoint.y / Screen.height));
+        data.gazeNormalizedPosition = new Vector2(normalizedX, normalizedY);
+
         data.screenWidth = Screen.width;
         data.screenHeight = Screen.height;
+
+        data.isGazeValid = screenPoint.z > 0;
+
+        if (!data.isGazeValid)
+        {
+            Debug.LogWarning($"Invalid gaze screen coordinates: ({screenPoint.x}, {screenPoint.y}, {screenPoint.z})");
+        }
     }
 
     void SendData(HeatmapDataPoint data)
@@ -133,6 +147,13 @@ public class Data : MonoBehaviour
             string jsonData = JsonUtility.ToJson(data);
             byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
             udpDataClient.Send(bytes, bytes.Length, dataEndPoint);
+
+            if (data.frameNumber % 100 == 0)
+            {
+                Debug.Log($"Frame {data.frameNumber}: Gaze at screen ({data.gazeScreenPosition.x:F1}, {data.gazeScreenPosition.y:F1}), " +
+                         $"normalized ({data.gazeNormalizedPosition.x:F3}, {data.gazeNormalizedPosition.y:F3}), " +
+                         $"valid: {data.isGazeValid}");
+            }
         }
         catch (System.Exception e)
         {
@@ -154,14 +175,17 @@ public class Data : MonoBehaviour
 [System.Serializable]
 public class HeatmapDataPoint
 {
+    [Header("Timing")]
     public float timestamp;
     public int frameNumber;
     public float deltaTime;
 
+    [Header("Head/Camera")]
     public Vector3 headPosition;
     public Quaternion headRotation;
     public float cameraFOV;
 
+    [Header("Eye Tracking")]
     public bool hasEyeTracking;
     public Vector3 leftEyeOrigin;
     public Vector3 leftEyeDirection;
@@ -170,10 +194,16 @@ public class HeatmapDataPoint
     public Vector3 combinedEyeOrigin;
     public Vector3 combinedEyeDirection;
 
+    [Header("Gaze Data")]
+    public Vector3 gazeWorldPoint;
     public Vector2 gazeScreenPosition;
     public Vector2 gazeNormalizedPosition;
     public float gazeScreenDepth;
+    public bool isGazeValid;
+
+    [Header("Screen Info")]
     public int screenWidth;
     public int screenHeight;
 }
+
 

@@ -1618,7 +1618,7 @@ MonoBehaviour:
   gameOverPanel: {fileID: 1580707676}
   delayBeforeShowingStats: 1
   bellClip: {fileID: 8300000, guid: 6fe334a62eaf4f44c913692b2d9c3f19, type: 3}
-  externalAppIP: 192.168.110.72
+  externalAppIP: 192.168.1.29
   externalAppPort: 5005
 --- !u!1001 &348648793
 PrefabInstance:
@@ -4219,10 +4219,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f7557814dcc864ab005346a2f3b83e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serverIP: 192.168.110.72
+  serverIP: 192.168.1.29
   dataPort: 5006
   dataCollectionRate: 30
   targetCamera: {fileID: 0}
+  fallbackGazeDistance: 10
 --- !u!4 &835606580 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 826a837d489ca9a4b961298e08b69e8a, type: 3}

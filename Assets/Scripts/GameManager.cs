@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
     private StatsUIManager statsUIManager;
 
     private UdpClient udpClient;
-    public string externalAppIP = "192.168.110.72"; 
+    public string externalAppIP = "192.168.1.29"; 
     public int externalAppPort = 5005;
 
     void Start()

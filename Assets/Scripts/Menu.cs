@@ -55,7 +55,7 @@ namespace menu
 
         private bool isRandomMode = false;
 
-        private string udpIP = "192.168.110.72";
+        private string udpIP = "192.168.1.29";
         private int udpPort = 5005;
 
         void Start()
