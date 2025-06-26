@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.alex.ocularvergence": "file:C:/Users/alexc/OneDrive/Escritorio/MyApp/Libreria-AppVR",
+    "com.alex.ocularvergence": "https://github.com/AlejandroCB-23/Libreria-AppVR.git",
     "com.htc.upm.wave.essence": "https://github.com/ViveSoftware/VIVE-Wave.git?path=com.htc.upm.wave.essence",
     "com.htc.upm.wave.native": "https://github.com/ViveSoftware/VIVE-Wave.git?path=com.htc.upm.wave.native",
     "com.htc.upm.wave.xrsdk": "https://github.com/ViveSoftware/VIVE-Wave.git?path=com.htc.upm.wave.xrsdk",
