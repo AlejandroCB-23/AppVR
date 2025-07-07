@@ -163,7 +163,7 @@ public class Data : MonoBehaviour
 
     void OnDestroy()
     {
-        udpDataClient?.Close();
+        udpDataClient?.Dispose();
     }
 
     public static class RecordingState

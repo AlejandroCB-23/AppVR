@@ -1,61 +1,59 @@
 #if WAVE_SDK_IMPORTED
 
 using System.Collections.Generic;
-using System.IO;
 using System;
-using UnityEngine.Android;
 using UnityEngine;
 using Wave.Essence.Eye;
-using System.Threading.Tasks;
-using Alex.OcularVergenceLibrary;
-using Unity.VisualScripting;
+using System.Net.Sockets;
 using System.Text;
+using System.Net;
+using Alex.OcularVergenceLibrary;
+using System.Threading.Tasks;
+using System.IO;
+using UnityEngine.Android;
+using System.Collections;
+using static Data;
 
 public class EyeDataCollector : MonoBehaviour
 {
     public static EyeDataCollector Instance { get; private set; }
 
-    private float captureInterval = 0.015f;
-    private float lastCaptureTime = 0f;
+    [Header("Network Configuration")]
+    public string serverIP = "192.168.1.29";
+    public int vergencePort = 5007;
 
-    private EyeVergenceEvent currentEvent = null;
-    private List<EyeVergenceEvent> completedEvents = new List<EyeVergenceEvent>();
+    [Header("Data Collection Settings")]
+    public float captureInterval = 0.015f;
 
-    private string eyeLogPath;
+    [Header("Storage Configuration")]
     private string statsPath;
 
+    private UdpClient udpVergenceClient;
+    private IPEndPoint vergenceEndPoint;
+
+    private float lastCaptureTime = 0f;
+    private EyeVergenceEvent currentEvent = null;
+    private List<EyeVergenceEvent> completedEvents = new List<EyeVergenceEvent>();
+    private float recordingStartTime = -1f;
     private int currentGameNumber;
-
-    private float lastSaveTime = 0f;
-    private float saveInterval = 5f;
-
-    private bool isSaving = false;
-    private bool isFirstWrite = true;
 
     void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+        }
         else
+        {
             Destroy(gameObject);
+        }
     }
 
     void Start()
     {
         RequestStoragePermissions();
-        string dataPath = Application.persistentDataPath;
-
-        if (!PlayerPrefs.HasKey("GameNumber"))
-        {
-            PlayerPrefs.SetInt("GameNumber", 1);
-            PlayerPrefs.Save();
-        }
-
-        currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
-        eyeLogPath = Path.Combine(dataPath, $"EyeData_Game{currentGameNumber}.json");
-        statsPath = Path.Combine(dataPath, "Stats.json");
-
-        InitializeJsonFile();
+        InitializeStorage();
+        InitializeNetwork();
 
         if (EyeManager.Instance != null)
         {
@@ -64,36 +62,62 @@ public class EyeDataCollector : MonoBehaviour
         }
     }
 
-    private void InitializeJsonFile()
+    private void InitializeStorage()
     {
-        if (!File.Exists(eyeLogPath))
+        string dataPath = Application.persistentDataPath;
+        if (!PlayerPrefs.HasKey("GameNumber"))
         {
-            File.WriteAllText(eyeLogPath, "{\"Items\":[]}");
-            isFirstWrite = true;
+            PlayerPrefs.SetInt("GameNumber", 1);
+            PlayerPrefs.Save();
         }
-        else
+        currentGameNumber = PlayerPrefs.GetInt("GameNumber", 1);
+        statsPath = Path.Combine(dataPath, "Stats.json");
+    }
+
+    private void InitializeNetwork()
+    {
+        try
         {
-            string content = File.ReadAllText(eyeLogPath);
-            isFirstWrite = string.IsNullOrEmpty(content) || content.Trim() == "{\"Items\":[]}";
+            udpVergenceClient = new UdpClient();
+            vergenceEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), vergencePort);
+            Debug.Log($"Vergence data network initialized successfully. Target: {serverIP}:{vergencePort}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Failed to initialize vergence network: " + e.Message);
         }
     }
 
     void Update()
     {
-        if (EyeManager.Instance == null || !EyeManager.Instance.IsEyeTrackingAvailable())
-            return;
-
-        if (Time.time - lastCaptureTime >= captureInterval)
+        if (RecordingState.IsRecording && recordingStartTime < 0)
         {
-            lastCaptureTime = Time.time;
-            CaptureEyeTrackingData();
+            recordingStartTime = Time.time;
+            Debug.Log("Vergence recording started - timestamp reset to 0");
         }
 
-        if (Time.time - lastSaveTime > saveInterval && !isSaving)
+        if (!RecordingState.IsRecording && recordingStartTime >= 0)
         {
-            lastSaveTime = Time.time;
-            _ = AppendEventsAsync();
+            FinalizePreviousEvent();
+            SendVergenceEvents();
+            StartCoroutine(SaveFinalStatsCoroutine());
+            recordingStartTime = -1f;
+            Debug.Log("Vergence recording stopped");
         }
+
+        if (RecordingState.IsRecording && EyeManager.Instance != null && EyeManager.Instance.IsEyeTrackingAvailable())
+        {
+            if (Time.time - lastCaptureTime >= captureInterval)
+            {
+                lastCaptureTime = Time.time;
+                CaptureEyeTrackingData();
+            }
+        }
+    }
+
+    private IEnumerator SaveFinalStatsCoroutine()
+    {
+        yield return SaveFinalStatsAsync().AsCoroutine();
     }
 
     void CaptureEyeTrackingData()
@@ -113,7 +137,7 @@ public class EyeDataCollector : MonoBehaviour
 
             float distance = Vector3.Distance(ray.origin, hit.point);
             float vergenceAngle = VergenceFunctions.CalculateVergenceAngle(interpupillaryDistance, distance);
-            float currentTime = Time.time;
+            float currentTime = Time.time - recordingStartTime;
 
             Vector3 combinedOrigin = Vector3.zero;
             Vector3 combinedDirection = Vector3.forward;
@@ -160,10 +184,32 @@ public class EyeDataCollector : MonoBehaviour
             if (currentEvent.eyeDataSamples != null && currentEvent.eyeDataSamples.Count > 0)
             {
                 completedEvents.Add(currentEvent);
-                Debug.Log($"Evento finalizado: {currentEvent.stimulus} con {currentEvent.eyeDataSamples.Count} muestras");
-                _ = AppendEventsAsync();
+                Debug.Log($"Vergence event finalized: {currentEvent.stimulus} with {currentEvent.eyeDataSamples.Count} samples");
+                SendVergenceEvents();
             }
             currentEvent = null;
+        }
+    }
+
+    private void SendVergenceEvents()
+    {
+        if (completedEvents.Count == 0)
+            return;
+
+        try
+        {
+            foreach (var evt in completedEvents)
+            {
+                string jsonData = JsonUtility.ToJson(evt);
+                byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
+                udpVergenceClient.Send(bytes, bytes.Length, vergenceEndPoint);
+                Debug.Log($"Sent vergence event: {evt.stimulus}, samples: {evt.eyeDataSamples.Count}");
+            }
+            completedEvents.Clear();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Failed to send vergence data: " + e.Message);
         }
     }
 
@@ -189,65 +235,20 @@ public class EyeDataCollector : MonoBehaviour
         }
     }
 
-    public async Task AppendEventsAsync()
-    {
-        if (isSaving || completedEvents.Count == 0) return;
-
-        try
-        {
-            isSaving = true;
-
-            StringBuilder jsonBuilder = new StringBuilder();
-
-            for (int i = 0; i < completedEvents.Count; i++)
-            {
-                string eventJson = JsonUtility.ToJson(completedEvents[i]);
-
-                if (!isFirstWrite || i > 0)
-                {
-                    jsonBuilder.Append(",");
-                }
-
-                jsonBuilder.Append(eventJson);
-            }
-
-            await AppendToJsonFileAsync(jsonBuilder.ToString());
-
-            isFirstWrite = false;
-            completedEvents.Clear();
-
-            Debug.Log($"Eventos guardados directamente por append");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Error appending vergence events: " + e.Message);
-        }
-        finally
-        {
-            isSaving = false;
-        }
-    }
-
-    private async Task AppendToJsonFileAsync(string jsonContent)
-    {
-        using (FileStream fs = new FileStream(eyeLogPath, FileMode.Open, FileAccess.ReadWrite))
-        {
-            fs.Seek(-2, SeekOrigin.End);
-
-            byte[] contentBytes = Encoding.UTF8.GetBytes(jsonContent + "]}");
-            await fs.WriteAsync(contentBytes, 0, contentBytes.Length);
-            await fs.FlushAsync();
-        }
-    }
-
     public async Task SaveFinalStatsAsync()
     {
         FinalizePreviousEvent();
-        await AppendEventsAsync();
+        SendVergenceEvents();
 
         try
         {
             var stats = StatsTracker.Instance;
+            if (stats == null)
+            {
+                Debug.LogError("StatsTracker.Instance is null");
+                return;
+            }
+
             var gameStats = new GameStats
             {
                 gameNumber = currentGameNumber,
@@ -265,8 +266,9 @@ public class EyeDataCollector : MonoBehaviour
             currentGameNumber++;
             PlayerPrefs.SetInt("GameNumber", currentGameNumber);
             PlayerPrefs.Save();
+            Debug.Log($"Saved final stats for game {gameStats.gameNumber} to {statsPath}");
         }
-        catch (Exception e)
+        catch (System.Exception e)
         {
             Debug.LogError("Error saving final stats: " + e.Message);
         }
@@ -275,20 +277,26 @@ public class EyeDataCollector : MonoBehaviour
     private async Task AppendStatsAsync(GameStats gameStats)
     {
         string statsJson = JsonUtility.ToJson(gameStats);
-
-        if (!File.Exists(statsPath))
+        try
         {
-            File.WriteAllText(statsPath, "{\"Items\":[" + statsJson + "]}");
-        }
-        else
-        {
-            using (FileStream fs = new FileStream(statsPath, FileMode.Open, FileAccess.ReadWrite))
+            if (!File.Exists(statsPath))
             {
-                fs.Seek(-2, SeekOrigin.End); 
-                byte[] contentBytes = Encoding.UTF8.GetBytes("," + statsJson + "]}");
-                await fs.WriteAsync(contentBytes, 0, contentBytes.Length);
-                await fs.FlushAsync();
+                File.WriteAllText(statsPath, "{\"Items\":[" + statsJson + "]}");
             }
+            else
+            {
+                using (FileStream fs = new FileStream(statsPath, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    fs.Seek(-2, SeekOrigin.End);
+                    byte[] contentBytes = Encoding.UTF8.GetBytes("," + statsJson + "]}");
+                    await fs.WriteAsync(contentBytes, 0, contentBytes.Length);
+                    await fs.FlushAsync();
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error appending stats to file: " + e.Message);
         }
     }
 
@@ -307,33 +315,29 @@ public class EyeDataCollector : MonoBehaviour
         else
             Debug.LogWarning("Eye tracking is NOT available.");
     }
+
+    void OnDestroy()
+    {
+        if (udpVergenceClient != null)
+        {
+            udpVergenceClient.Close();
+            udpVergenceClient = null;
+        }
+    }
 }
 
-public class SimpleAppendDataCollector : MonoBehaviour
+public static class TaskExtensions
 {
-    private string eyeLogPath;
-
-    void Start()
+    public static IEnumerator AsCoroutine(this Task task)
     {
-        eyeLogPath = Path.Combine(Application.persistentDataPath, $"EyeData_Simple.txt");
-    }
-
-    public async Task AppendEventSimpleAsync(EyeVergenceEvent evt)
-    {
-        try
+        while (!task.IsCompleted)
         {
-            string eventLine = JsonUtility.ToJson(evt) + Environment.NewLine;
-
-            // Escribir línea directamente al final del archivo
-            using (StreamWriter writer = new StreamWriter(eyeLogPath, append: true))
-            {
-                await writer.WriteLineAsync(eventLine);
-                await writer.FlushAsync();
-            }
+            yield return null;
         }
-        catch (Exception e)
+
+        if (task.IsFaulted)
         {
-            Debug.LogError("Error appending event: " + e.Message);
+            throw task.Exception;
         }
     }
 }
