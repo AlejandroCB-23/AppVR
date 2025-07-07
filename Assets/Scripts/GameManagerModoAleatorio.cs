@@ -1,6 +1,8 @@
 #if WAVE_SDK_IMPORTED
 
 using UnityEngine;
+using System.Net.Sockets;
+using System.Text;
 
 public class GameManagerModoAleatorio : MonoBehaviour
 {
@@ -14,6 +16,10 @@ public class GameManagerModoAleatorio : MonoBehaviour
 
     private bool gameEnded = false;
     private StatsUIManager statsUIManager;
+
+    private UdpClient udpClient;
+    public string externalAppIP = "192.168.1.29";
+    public int externalAppPort = 5005;
 
     void Start()
     {
@@ -30,6 +36,8 @@ public class GameManagerModoAleatorio : MonoBehaviour
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
+
+        udpClient = new UdpClient();
     }
 
     void Update()
@@ -58,12 +66,16 @@ public class GameManagerModoAleatorio : MonoBehaviour
         {
             Destroy(ship);
         }
-
         Invoke(nameof(ShowEndStats), delayBeforeShowingStats);
+
     }
 
     void ShowEndStats()
     {
+
+        SendExternalMessage("state:end");
+        Data.RecordingState.IsRecording = false;
+
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
 
@@ -82,7 +94,20 @@ public class GameManagerModoAleatorio : MonoBehaviour
             );
         }
     }
+
+    void SendExternalMessage(string message)
+    {
+        byte[] data = Encoding.UTF8.GetBytes(message);
+        udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        Debug.Log("Mensaje UDP enviado: " + message);
+    }
+
+    void OnApplicationQuit()
+    {
+        udpClient?.Dispose();
+    }
 }
 #endif
+
 
 
