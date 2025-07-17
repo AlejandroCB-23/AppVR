@@ -99,7 +99,6 @@ public class GameManagerModoAleatorio : MonoBehaviour
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
         udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
-        Debug.Log("Mensaje UDP enviado: " + message);
     }
 
     void OnApplicationQuit()

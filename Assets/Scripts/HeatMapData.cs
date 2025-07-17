@@ -1,5 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
+#if WAVE_SDK_IMPORTED
+
 using UnityEngine;
 using System.Net.Sockets;
 using System.Text;
@@ -40,7 +40,6 @@ public class HeatMapData : MonoBehaviour
         {
             udpDataClient = new UdpClient();
             dataEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), dataPort);
-            Debug.Log($"Network initialized successfully. Target: {serverIP}:{dataPort}");
         }
         catch (System.Exception e)
         {
@@ -133,11 +132,6 @@ public class HeatMapData : MonoBehaviour
         data.screenHeight = Screen.height;
 
         data.isGazeValid = screenPoint.z > 0;
-
-        if (!data.isGazeValid)
-        {
-            Debug.LogWarning($"Invalid gaze screen coordinates: ({screenPoint.x}, {screenPoint.y}, {screenPoint.z})");
-        }
     }
 
     void SendData(HeatmapDataPoint data)
@@ -147,13 +141,6 @@ public class HeatMapData : MonoBehaviour
             string jsonData = JsonUtility.ToJson(data);
             byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
             udpDataClient.Send(bytes, bytes.Length, dataEndPoint);
-
-            if (data.frameNumber % 100 == 0)
-            {
-                Debug.Log($"Frame {data.frameNumber}: Gaze at screen ({data.gazeScreenPosition.x:F1}, {data.gazeScreenPosition.y:F1}), " +
-                         $"normalized ({data.gazeNormalizedPosition.x:F3}, {data.gazeNormalizedPosition.y:F3}), " +
-                         $"valid: {data.isGazeValid}");
-            }
         }
         catch (System.Exception e)
         {
@@ -206,4 +193,5 @@ public class HeatmapDataPoint
     public int screenHeight;
 }
 
+#endif
 
