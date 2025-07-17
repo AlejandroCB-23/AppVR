@@ -53,13 +53,11 @@ public class HeatMapData : MonoBehaviour
         {
             recordingStartTime = Time.time;
             frameCounter = 0;
-            Debug.Log("Recording started - timestamp reset to 0");
         }
 
         if (!RecordingState.IsRecording && recordingStartTime >= 0)
         {
             recordingStartTime = -1f;
-            Debug.Log("Recording stopped");
         }
 
         if (RecordingState.IsRecording && Time.time - lastDataTime >= 1f / dataCollectionRate)
