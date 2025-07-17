@@ -3,7 +3,7 @@
 using UnityEngine;
 using TMPro; 
 
-public class StatsUIManager : MonoBehaviour
+public class Stats : MonoBehaviour
 {
     [Header("References to the texts")]
     public TMP_Text piratesEliminatedText;

@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 using System.IO;
 using UnityEngine.Android;
 using System.Collections;
-using static Data;
+using static HeatMapData;
 
-public class EyeDataCollector : MonoBehaviour
+public class StatsSaved: MonoBehaviour
 {
-    public static EyeDataCollector Instance { get; private set; }
+    public static StatsSaved Instance { get; private set; }
 
     [Header("Network Configuration")]
-    public string serverIP = "192.168.1.29";
+    public string serverIP = "192.168.0.00";
     public int vergencePort = 5007;
 
     [Header("Data Collection Settings")]
@@ -58,7 +58,6 @@ public class EyeDataCollector : MonoBehaviour
         if (EyeManager.Instance != null)
         {
             EyeManager.Instance.EnableEyeTracking = true;
-            CheckEyeTrackingAvailability();
         }
     }
 
@@ -80,7 +79,6 @@ public class EyeDataCollector : MonoBehaviour
         {
             udpVergenceClient = new UdpClient();
             vergenceEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), vergencePort);
-            Debug.Log($"Vergence data network initialized successfully. Target: {serverIP}:{vergencePort}");
         }
         catch (System.Exception e)
         {
@@ -93,7 +91,6 @@ public class EyeDataCollector : MonoBehaviour
         if (RecordingState.IsRecording && recordingStartTime < 0)
         {
             recordingStartTime = Time.time;
-            Debug.Log("Vergence recording started - timestamp reset to 0");
         }
 
         if (!RecordingState.IsRecording && recordingStartTime >= 0)
@@ -102,7 +99,6 @@ public class EyeDataCollector : MonoBehaviour
             SendVergenceEvents();
             StartCoroutine(SaveFinalStatsCoroutine());
             recordingStartTime = -1f;
-            Debug.Log("Vergence recording stopped");
         }
 
         if (RecordingState.IsRecording && EyeManager.Instance != null && EyeManager.Instance.IsEyeTrackingAvailable())
@@ -184,7 +180,6 @@ public class EyeDataCollector : MonoBehaviour
             if (currentEvent.eyeDataSamples != null && currentEvent.eyeDataSamples.Count > 0)
             {
                 completedEvents.Add(currentEvent);
-                Debug.Log($"Vergence event finalized: {currentEvent.stimulus} with {currentEvent.eyeDataSamples.Count} samples");
                 SendVergenceEvents();
             }
             currentEvent = null;
@@ -203,7 +198,6 @@ public class EyeDataCollector : MonoBehaviour
                 string jsonData = JsonUtility.ToJson(evt);
                 byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
                 udpVergenceClient.Send(bytes, bytes.Length, vergenceEndPoint);
-                Debug.Log($"Sent vergence event: {evt.stimulus}, samples: {evt.eyeDataSamples.Count}");
             }
             completedEvents.Clear();
         }
@@ -243,11 +237,6 @@ public class EyeDataCollector : MonoBehaviour
         try
         {
             var stats = StatsTracker.Instance;
-            if (stats == null)
-            {
-                Debug.LogError("StatsTracker.Instance is null");
-                return;
-            }
 
             var gameStats = new GameStats
             {
@@ -266,7 +255,6 @@ public class EyeDataCollector : MonoBehaviour
             currentGameNumber++;
             PlayerPrefs.SetInt("GameNumber", currentGameNumber);
             PlayerPrefs.Save();
-            Debug.Log($"Saved final stats for game {gameStats.gameNumber} to {statsPath}");
         }
         catch (System.Exception e)
         {
@@ -306,14 +294,6 @@ public class EyeDataCollector : MonoBehaviour
             Permission.RequestUserPermission(Permission.ExternalStorageWrite);
         if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead))
             Permission.RequestUserPermission(Permission.ExternalStorageRead);
-    }
-
-    void CheckEyeTrackingAvailability()
-    {
-        if (EyeManager.Instance.IsEyeTrackingAvailable())
-            Debug.Log("Eye tracking is available.");
-        else
-            Debug.LogWarning("Eye tracking is NOT available.");
     }
 
     void OnDestroy()

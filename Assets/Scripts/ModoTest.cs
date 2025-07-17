@@ -1,10 +1,9 @@
 #if WAVE_SDK_IMPORTED
 
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
-public class FixedSpawner : MonoBehaviour
+public class ModoTest : MonoBehaviour
 {
     public Transform[] spawnPoints;
     public Transform[] endPoints;
@@ -23,7 +22,7 @@ public class FixedSpawner : MonoBehaviour
     void Start()
     {
         StatsTracker.Instance.ResetAll();
-        FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+        FindObjectOfType<GazeDetector>()?.ResetDetector();
 
         schedule.Clear();
         schedule.AddRange(BuildSchedule());
@@ -130,7 +129,6 @@ public class FixedSpawner : MonoBehaviour
         float defaultSpeed = 37f;
         int[,] rawScheduleData = new int[,]
         {
-            // Format: {time*10, lane, isPirate, sizeIndex}
             {0, 0, 1, 0}, {25, 1, 1, 1}, {48, 2, 0, 2}, {72, 0, 1, 1},
             {96, 1, 0, 0}, {121, 2, 1, 2}, {144, 0, 0, 1}, {169, 1, 1, 0},
             {193, 2, 1, 2}, {217, 0, 1, 1}, {240, 1, 0, 0}, {265, 2, 1, 2},

@@ -62,8 +62,6 @@ public class StatsTracker : MonoBehaviour
         piratesEscaped++;
         livesLostToPirateEscapes++;
         currentPirateStreak = 0;
-
-        Debug.Log($"¡Un pirata ha escapado! Piratas escapados: {piratesEscaped}");
     }
 
     public int GetTotalLivesLost()

@@ -3,7 +3,7 @@
 using UnityEngine;
 using TMPro;
 
-public class CountdownUI : MonoBehaviour
+public class Timer : MonoBehaviour
 {
     public TextMeshProUGUI counterText;
     private GameManager gameManager;
