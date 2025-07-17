@@ -127,9 +127,18 @@ public class GameManager : MonoBehaviour
 
     void SendExternalMessage(string message)
     {
-        byte[] data = Encoding.UTF8.GetBytes(message);
-        udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        try
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[UDP] Failed to send '{message}' to {externalAppIP}:{externalAppPort} ? {e.Message}");
+        }
     }
+
+
 
     void OnApplicationQuit()
     {

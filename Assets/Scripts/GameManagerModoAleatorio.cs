@@ -97,9 +97,17 @@ public class GameManagerModoAleatorio : MonoBehaviour
 
     void SendExternalMessage(string message)
     {
-        byte[] data = Encoding.UTF8.GetBytes(message);
-        udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        try
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            udpClient.Send(data, data.Length, externalAppIP, externalAppPort);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[UDP] Failed to send message '{message}': {e.Message}");
+        }
     }
+
 
     void OnApplicationQuit()
     {

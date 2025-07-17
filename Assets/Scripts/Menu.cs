@@ -208,12 +208,20 @@ namespace menu
 
         void SendUdpMessage(string message)
         {
-            using (UdpClient client = new UdpClient())
+            try
             {
+                using (UdpClient client = new UdpClient())
+                {
                     byte[] data = Encoding.UTF8.GetBytes(message);
                     client.Send(data, data.Length, udpIP, udpPort);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("UDP Send failed: " + e.Message);
             }
         }
+
     }
 }
 
