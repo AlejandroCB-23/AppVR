@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class FixedSpawner : MonoBehaviour
+public class ModoTest : MonoBehaviour
 {
     public Transform[] spawnPoints;
     public Transform[] endPoints;
@@ -23,7 +23,7 @@ public class FixedSpawner : MonoBehaviour
     void Start()
     {
         StatsTracker.Instance.ResetAll();
-        FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+        FindObjectOfType<GazeDetector>()?.ResetDetector();
 
         schedule.Clear();
         schedule.AddRange(BuildSchedule());

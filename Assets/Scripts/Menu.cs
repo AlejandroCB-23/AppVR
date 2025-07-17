@@ -7,11 +7,10 @@ namespace menu
     using UnityEngine.InputSystem;
     using Wave.Essence.Eye;
     using Alex.OcularVergenceLibrary;
-    using System.Net;
     using System.Net.Sockets;
     using System.Text;
 
-    public class GazeMenuVive : MonoBehaviour
+    public class Menu : MonoBehaviour
     {
         [Header("Menu references")]
         public GameObject MainMenu;
@@ -55,7 +54,7 @@ namespace menu
 
         private bool isRandomMode = false;
 
-        public string udpIP = "192.168.1.29";
+        public string udpIP = "192.168.0.00";
         private int udpPort = 5005;
 
         void Start()
@@ -161,7 +160,7 @@ namespace menu
 
         public void ExecuteButtonAction(GameObject button)
         {
-            FindObjectOfType<GazeShipDetector>()?.ResetDetector();
+            FindObjectOfType<GazeDetector>()?.ResetDetector();
 
             if (button == modoTestObject)
             {
@@ -182,21 +181,21 @@ namespace menu
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyView;
                 SendUdpMessage("state:start");
-                Data.RecordingState.IsRecording = true;
+                HeatMapData.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == onlyControllerObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.OnlyController;
                 SendUdpMessage("state:start");
-                Data.RecordingState.IsRecording = true;
+                HeatMapData.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == bothObject)
             {
                 GameSettings.CurrentShootingMode = GameSettings.DisparoMode.Both;
                 SendUdpMessage("state:start");
-                Data.RecordingState.IsRecording = true;
+                HeatMapData.RecordingState.IsRecording = true;
                 SceneManager.LoadScene(isRandomMode ? "ModoAleatorio" : "ModoTest", LoadSceneMode.Single);
             }
             else if (button == backObject)
@@ -211,16 +210,8 @@ namespace menu
         {
             using (UdpClient client = new UdpClient())
             {
-                try
-                {
                     byte[] data = Encoding.UTF8.GetBytes(message);
                     client.Send(data, data.Length, udpIP, udpPort);
-                    Debug.Log($"Mensaje UDP enviado: {message}");
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError("Error al enviar UDP: " + e.Message);
-                }
             }
         }
     }

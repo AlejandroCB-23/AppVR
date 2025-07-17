@@ -26,13 +26,13 @@ public class GameManager : MonoBehaviour
 
     public float TimeRemaining => timer;
 
-    [SerializeField] private GazeShipDetector gazeShipDetector;
+    [SerializeField] private GazeDetector gazeShipDetector;
     public InputAction fireAction;
 
-    private StatsUIManager statsUIManager;
+    private Stats statsUIManager;
 
     private UdpClient udpClient;
-    public string externalAppIP = "192.168.1.29"; 
+    public string externalAppIP = "192.168.0.00"; 
     public int externalAppPort = 5005;
 
     void Start()
@@ -53,7 +53,7 @@ public class GameManager : MonoBehaviour
             endStatsCanvas.SetActive(false);
 
         if (endStatsCanvas != null)
-            statsUIManager = endStatsCanvas.GetComponent<StatsUIManager>();
+            statsUIManager = endStatsCanvas.GetComponent<Stats>();
 
 
         udpClient = new UdpClient();
@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
             gameEnded = true;
 
             SendExternalMessage("state:end");
-            Data.RecordingState.IsRecording = false;
+            HeatMapData.RecordingState.IsRecording = false;
 
             if (ticTacSource.isPlaying)
                 ticTacSource.Stop();

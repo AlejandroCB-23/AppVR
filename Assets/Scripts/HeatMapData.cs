@@ -6,10 +6,10 @@ using System.Text;
 using System.Net;
 using Alex.OcularVergenceLibrary;
 
-public class Data : MonoBehaviour
+public class HeatMapData : MonoBehaviour
 {
     [Header("Network Configuration")]
-    public string serverIP = "192.168.1.29";
+    public string serverIP = "192.168.0.00";
     public int dataPort = 5006;
 
     [Header("Data Collection Settings")]

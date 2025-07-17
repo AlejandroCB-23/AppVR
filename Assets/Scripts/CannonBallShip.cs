@@ -25,9 +25,9 @@ public class CannonballShip : MonoBehaviour
 
         else if (hitObj.CompareTag("Boton"))
         {
-            if (EyeDataCollector.Instance != null)
+            if (StatsSaved.Instance != null)
             {
-                await EyeDataCollector.Instance.SaveFinalStatsAsync(); 
+                await StatsSaved.Instance.SaveFinalStatsAsync(); 
             }
             await Task.Delay(400);
 

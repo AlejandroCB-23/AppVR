@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 using System.IO;
 using UnityEngine.Android;
 using System.Collections;
-using static Data;
+using static HeatMapData;
 
-public class EyeDataCollector : MonoBehaviour
+public class StatsSaved: MonoBehaviour
 {
-    public static EyeDataCollector Instance { get; private set; }
+    public static StatsSaved Instance { get; private set; }
 
     [Header("Network Configuration")]
-    public string serverIP = "192.168.1.29";
+    public string serverIP = "192.168.0.00";
     public int vergencePort = 5007;
 
     [Header("Data Collection Settings")]

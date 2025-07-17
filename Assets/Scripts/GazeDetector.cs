@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using Wave.Essence.Eye;
 using Alex.OcularVergenceLibrary;
 
-public class GazeShipDetector : MonoBehaviour
+public class GazeDetector : MonoBehaviour
 {
     public float maxDistance = Mathf.Infinity;
     public GameObject cannonballPrefab;
@@ -189,7 +189,7 @@ public class GazeShipDetector : MonoBehaviour
             cannonAudioSource.PlayOneShot(cannonShotClip);
         }
 
-        EyeDataCollector.Instance?.MarkShot();
+        StatsSaved.Instance?.MarkShot();
     }
 
 }

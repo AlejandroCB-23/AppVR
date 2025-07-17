@@ -7,7 +7,7 @@ public class Cannonball : MonoBehaviour
     [HideInInspector]
     public GameObject targetButton; 
     [HideInInspector]
-    public menu.GazeMenuVive menuController;
+    public menu.Menu menuController;
 
     void OnCollisionEnter(Collision collision)
     {

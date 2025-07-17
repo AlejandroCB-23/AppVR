@@ -15,10 +15,10 @@ public class GameManagerModoAleatorio : MonoBehaviour
     private AudioSource bellSource;
 
     private bool gameEnded = false;
-    private StatsUIManager statsUIManager;
+    private Stats statsUIManager;
 
     private UdpClient udpClient;
-    public string externalAppIP = "192.168.1.29";
+    public string externalAppIP = "192.168.0.00";
     public int externalAppPort = 5005;
 
     void Start()
@@ -31,7 +31,7 @@ public class GameManagerModoAleatorio : MonoBehaviour
         if (endStatsCanvas != null)
         {
             endStatsCanvas.SetActive(false);
-            statsUIManager = endStatsCanvas.GetComponent<StatsUIManager>();
+            statsUIManager = endStatsCanvas.GetComponent<Stats>();
         }
 
         if (gameOverPanel != null)
@@ -74,7 +74,7 @@ public class GameManagerModoAleatorio : MonoBehaviour
     {
 
         SendExternalMessage("state:end");
-        Data.RecordingState.IsRecording = false;
+        HeatMapData.RecordingState.IsRecording = false;
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
