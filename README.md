@@ -1,6 +1,6 @@
-# App-RV
+# Piratas a la Vista
 
-**App-RV** es una herramienta en realidad virtual diseñada para la recolección y análisis de datos oculares durante la ejecución de tareas cognitivas. Desarrollada en Unity y optimizada para el dispositivo HTC Vive Focus 3, esta aplicación implementa un juego serio basado en el paradigma **Go/No-Go**, orientado a contextos de evaluación cognitiva, investigación y análisis del comportamiento visual.
+**Piratas a la Vista** es una herramienta en realidad virtual diseñada para la recolección y análisis de datos oculares durante la ejecución de tareas cognitivas. Desarrollada en Unity y optimizada para el dispositivo HTC Vive Focus 3, esta aplicación implementa un juego serio basado en el paradigma **Go/No-Go**, orientado a contextos de evaluación cognitiva, investigación y análisis del comportamiento visual.
 
 ---
 
